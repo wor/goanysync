@@ -1,7 +1,7 @@
 // vim: set sts=4 ts=4 sw=4 et foldmethod=marker:
 // Formated with: gofmt -w=true -tabwidth=4 -tabs=false
 
-// main package of gosyncd program by Esa Määttä <esa.maatta AT iki DOT fi>.
+// main package of goanysync program by Esa Määttä <esa.maatta AT iki DOT fi>.
 // Inspired by anything-sync-daemon written by graysky <graysky AT archlinux DOT us>
 // Should be drop-in-replacement functionally wise, though doesn't use exactly same
 // config file syntax.
@@ -60,8 +60,8 @@ func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { /
 // Generates volatile and backup path names and a regex string for matching
 // volatile path name.
 func pathNameGen(s string, tmpfs string, uid uint, gid uint) (volatilePath string, backupPath string, volatilePathRe string) { // {{{
-    volatilePrefix := path.Join(tmpfs, "gosyncd-")
-    const backupPostfix  string = "-backup_gosyncd"
+    volatilePrefix := path.Join(tmpfs, "goanysync-")
+    const backupPostfix  string = "-backup_goanysync"
 
     volatileBasePathRe := fmt.Sprintf("%s[0-9]+:[0-9]+", volatilePrefix)
     volatilePathRe = path.Join(volatileBasePathRe, s)
@@ -204,7 +204,7 @@ func main() {
     if len(os.Args) < 2 {
         log.Fatalln(errorMessage)
     }
-    configFilePath := flag.String("c", "/etc/gosyncd.conf", "Config file.")
+    configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
     verbose := *flag.Bool("v", false, "Be more verbose.")
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
