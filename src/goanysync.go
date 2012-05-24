@@ -76,7 +76,7 @@ func pathNameGen(s string, tmpfs string, uid uint, gid uint) (volatilePath strin
 // --------------------------------------------------------------------------
 
 // Checks if any sync sources where synced but not finally unsynced. Restores
-// such sources from backup path to orginal state.
+// such sources from backup path to original state.
 func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
     for _, s := range *syncSources {
         _, backupPath, volatilePathRe := pathNameGen(s, tmpfs, 0, 0)
@@ -122,8 +122,8 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         volatilePath, backupPath, _ := pathNameGen(s, tmpfs, uid, gid)
 
         // First check if our target directory in tmpfs is ready.
-        // We must ensure that the orginal owner of the source directory can
-        // read the tmpfs volatile target dir, so we use the orginals
+        // We must ensure that the original owner of the source directory can
+        // read the tmpfs volatile target dir, so we use the originals
         // permissions.
         if err := os.MkdirAll(volatilePath, fi.Mode()); err != nil { // {{{
             log.Printf("sync error (volatile path creation): %s\n... Skipping path: %s", err, s)
@@ -159,7 +159,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
     return
 }   // }}}
 
-// unsync removes symbolic linkin to tmpfs and restores orginal from backup
+// unsync removes symbolic linkin to tmpfs and restores original from backup
 func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
     for _, s := range *syncSources {
         var (
@@ -200,7 +200,7 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
 
 func main() {
     const errorMessage string = "Error: use this program through rc.d wrapper (addvisable), or provide valid command."
-    // Check that at least one argment given
+    // Check that at least one argument given
     if len(os.Args) < 2 {
         log.Fatalln(errorMessage)
     }
