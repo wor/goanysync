@@ -61,6 +61,6 @@ install: all
 	@install -D --mode=0744 conf/gsd.cronjob   "$(INSTALL_CRONJOB)/gsd"
 	@mkdir -p --mode=0755 "$(INSTALL_SERVICE)" "$(INSTALL_BIN)" "$(INSTALL_ETC)" "$(INSTALL_MAN1)"
 	@install --mode=0644 --target-directory="$(INSTALL_SERVICE)" conf/goanysync.service
-	@install --mode=0644 --target-directory="$(INSTALL_BIN)" "$(BUILDDIR)/$(BIN)"
+	@install --mode=0755 --target-directory="$(INSTALL_BIN)" "$(BUILDDIR)/$(BIN)"
 	@install --mode=0644 --target-directory="$(INSTALL_ETC)" conf/goanysync.conf
 	@install --mode=0644 --target-directory="$(INSTALL_MAN1)" $(MANPAGES)
