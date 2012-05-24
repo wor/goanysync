@@ -1,0 +1,46 @@
+NAME
+    goanysync - Directory symlinker and content syncer.
+
+SYNOPSIS
+    goanysync <command>
+
+DESCRIPTION
+    goanysync is a relatively small program to replace given directories in
+    HDD/SSD with symlinks to tmpfs and then syncing tmpfs contents back to
+    HDD/SSD.
+
+COMMANDS
+    sync	Backups given sync directories and moves their content to tmpfs
+    replacing orginal directories with symlinks to the new location in the
+    TMPFS.
+    unsync	Removes symlinking and restores orginal state of the sync directories.
+    check	Checks whether sync was called without calling unsync before used
+    TMPFS was cleared (rebooting the computer can for example cause this).
+
+MOTIVATION
+    goanysync began as fork of anything-sync-daemon (by graysky), but is now
+    basically a complete rewrite and only the documentation and functionality
+    still bares resemblance to asd. Rewrote was mainly inspired by permission
+    problems with symlinked dirs and by the original programs bash code which
+    contained gems like this:
+    [[ -d "$VOLATILE$i" ]] || mkdir -p "$VOLATILE$i" || "install -Dm755 $VOLATILE$i"
+
+SETUP
+    All settings are defined in goanysync.conf which by default is installed
+    under /etc.
+
+USAGE
+    goanysync can be used directly or through wrapper script like "gsd" which is
+    included in the package. "gsd" is Arch Linux rc script so it depends on
+    the distributions initscripts. Basically wrapper script is used to run
+    "goanysync check && goanysync sync" on system startup and "goanysync sync &&
+    goanysync unsync" on shutdown or reboot.
+
+    For more, see: http://github.com/wor/goanysync
+    Also, see: http://wiki.archlinux.org/index.php/Anything-sync-daemon
+
+REPORTING BUGS
+    esa.maatta AT gmail
+
+AUTHORS
+    Esa Määttä (esa.maatta AT gmail)
