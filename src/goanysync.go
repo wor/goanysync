@@ -20,8 +20,62 @@ import (
     "syscall"
 )
 
+// mkdirAll creates a directory named path,
+// along with any necessary parents, and returns nil,
+// or else returns an error.
+// The permission bits perm are used for all
+// directories that mkdirAll creates. Also given uid and gid are set.
+// If path is already a directory, mkdirAll does nothing
+// and returns nil.
+// This function is a copy of os.MkdirAll with uid and gid setting.
+func mkdirAll(path string, perm os.FileMode, uid uint, gid uint) error {
+    // If path exists, stop with success or error.
+    dir, err := os.Stat(path)
+    if err == nil {
+        if dir.IsDir() {
+            return nil
+        }
+        return &os.PathError{"mkdir", path, syscall.ENOTDIR}
+    }
 
-// Checks whether given file name exists.
+    // Doesn't already exist; make sure parent does.
+    i := len(path)
+    for i > 0 && os.IsPathSeparator(path[i-1]) { // Skip trailing path separator.
+        i--
+    }
+
+    j := i
+    for j > 0 && !os.IsPathSeparator(path[j-1]) { // Scan backward over element.
+        j--
+    }
+
+    if j > 1 {
+        // Create parent
+        err = mkdirAll(path[0:j-1], perm, uid, gid)
+        if err != nil {
+            return err
+        }
+    }
+
+    // Now parent exists, try to create.
+    err = os.Mkdir(path, perm)
+    if err != nil {
+        // Handle arguments like "foo/." by
+        // double-checking that directory doesn't exist.
+        dir, err1 := os.Lstat(path)
+        if err1 == nil && dir.IsDir() {
+            return nil
+        }
+        return err
+    }
+    // Change user and group id
+    if err1 := os.Chown(path, int(uid), int(gid)); err1 != nil {
+        return err1
+    }
+    return nil
+}
+
+// exists checks whether given file name exists.
 func exists(fn string) bool { // {{{
     if _, err := os.Stat(fn); err != nil {
         return !os.IsNotExist(err)
@@ -29,7 +83,7 @@ func exists(fn string) bool { // {{{
     return true
 } // }}}
 
-// Returns owner user and group ids from given FileInfo
+// getFileUserAndGroupId returns owner user and group ids from given FileInfo.
 func getFileUserAndGroupId(fi os.FileInfo) (uid uint, gid uint, err error) { // {{{
     if st, ok := fi.Sys().(*syscall.Stat_t); ok {
         return uint(st.Uid), uint(st.Gid), nil
@@ -38,8 +92,8 @@ func getFileUserAndGroupId(fi os.FileInfo) (uid uint, gid uint, err error) { // 
     return
 } // }}}
 
-// Checks whether given path name "s" is valid source for sync. Returns
-// necessary information for sync/unsync function about "s".
+// isValidSource checks whether given path name "s" is valid source for sync.
+// Returns necessary information for sync/unsync function about "s".
 func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { // {{{
     if fi, err = os.Stat(s); err != nil {
         return
@@ -57,8 +111,8 @@ func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { /
     return
 } // }}}
 
-// Generates volatile and backup path names and a regex string for matching
-// volatile path name.
+// pathNameGen generates volatile and backup path names and a regex string for
+// matching volatile path name.
 func pathNameGen(s string, tmpfs string, uid uint, gid uint) (volatilePath string, backupPath string, volatilePathRe string) { // {{{
     volatilePrefix := path.Join(tmpfs, "goanysync-")
     const backupPostfix  string = "-backup_goanysync"
@@ -75,8 +129,8 @@ func pathNameGen(s string, tmpfs string, uid uint, gid uint) (volatilePath strin
 
 // --------------------------------------------------------------------------
 
-// Checks if any sync sources where synced but not finally unsynced. Restores
-// such sources from backup path to original state.
+// checkAndFix checks if any sync sources where synced but not finally unsynced.
+// Restores such sources from backup path to original state.
 func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
     for _, s := range *syncSources {
         _, backupPath, volatilePathRe := pathNameGen(s, tmpfs, 0, 0)
@@ -125,7 +179,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         // We must ensure that the original owner of the source directory can
         // read the tmpfs volatile target dir, so we use the originals
         // permissions.
-        if err := os.MkdirAll(volatilePath, fi.Mode()); err != nil { // {{{
+        if err := mkdirAll(volatilePath, fi.Mode(), uid, gid); err != nil { // {{{
             log.Printf("sync error (volatile path creation): %s\n... Skipping path: %s", err, s)
             continue
         }   // }}}
