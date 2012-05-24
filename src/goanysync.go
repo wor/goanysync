@@ -206,6 +206,7 @@ func main() {
     }
     configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
     verbose := *flag.Bool("v", false, "Be more verbose.")
+    // TODO: write command infos
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
         fmt.Fprintf(os.Stderr, "  Commands:\n")
