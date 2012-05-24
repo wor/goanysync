@@ -35,7 +35,7 @@ sync() {
 
 stop() {
   stat_busy "Stopping ${daemon_name} daemon"
-  if [[ ! -f /run/daemons/asd ]]; then
+  if [[ ! -f /run/daemons/${daemon_name} ]]; then
     stat_die  # check if already stopped
   else
     /usr/bin/${daemon_name} sync
