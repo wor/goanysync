@@ -253,20 +253,21 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
 } // }}}
 
 func main() {
-    const errorMessage string = "Error: use this program through rc.d wrapper (addvisable), or provide valid command."
+    const errorMessage string = "Error: non valid command provided."
     // Check that at least one argument given
     if len(os.Args) < 2 {
         log.Fatalln(errorMessage)
     }
     configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
     verbose := *flag.Bool("v", false, "Be more verbose.")
-    // TODO: write command infos
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
         fmt.Fprintf(os.Stderr, "  Commands:\n")
-        fmt.Fprintf(os.Stderr, "   sync\n")
-        fmt.Fprintf(os.Stderr, "   unsync\n")
-        fmt.Fprintf(os.Stderr, "   check\n")
+        fmt.Fprintf(os.Stderr, "   sync\t\tReplaces sync directories with symlinks to tmpfs and if already done syncs content from tmpfs to the backup.\n")
+        fmt.Fprintf(os.Stderr, "   unsync\tRestores orginal state of sync directories.\n")
+        fmt.Fprintf(os.Stderr, "   check\tChecks if sync was called without unsync before tmpfs was cleared.\n")
+        fmt.Fprintf(os.Stderr, "   start\tAlias for running check and sync.\n")
+        fmt.Fprintf(os.Stderr, "   stop\t\tAlias for running sync and unsync.\n")
         fmt.Fprintf(os.Stderr, "  Options:\n")
         flag.PrintDefaults()
     }
@@ -288,8 +289,17 @@ func main() {
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
     case "unsync":
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
+    case "start":
+        checkAndFix(copts.tmpfsPath, &copts.syncPaths)
+        sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
+    case "stop":
+        sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
+        unsync(copts.tmpfsPath, &copts.syncPaths, false)
     default:
-        log.Fatalln(errorMessage)
+        log.Println(errorMessage)
+        fmt.Println()
+        flag.Usage()
+        os.Exit(1)
     }
     return
 }
