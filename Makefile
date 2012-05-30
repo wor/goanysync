@@ -12,6 +12,7 @@ INSTALL_SERVICE = $(PREFIX)/lib/systemd/system
 INSTALL_ETC     = $(DESTDIR)/etc
 INSTALL_RCD     = $(INSTALL_ETC)/rc.d
 INSTALL_CRONJOB = $(INSTALL_ETC)/cron.hourly
+SYSCONFDIR      = $(PREFIX)/etc
 
 SRCDIR      := src
 DOCDIR      := doc
@@ -58,7 +59,7 @@ clean:
 install: all
 	@[[ -f /etc/arch-release ]] && \
 		install -D --mode=0755 script/gsd      "$(INSTALL_RCD)/gsd"
-	@install -D --mode=0744 conf/gsd.cronjob   "$(INSTALL_CRONJOB)/gsd"
+	#@install -D --mode=0744 conf/gsd.cronjob   "$(INSTALL_CRONJOB)/gsd"
 	@mkdir -p --mode=0755 "$(INSTALL_SERVICE)" "$(INSTALL_BIN)" "$(INSTALL_ETC)" "$(INSTALL_MAN1)"
 	@install --mode=0644 --target-directory="$(INSTALL_SERVICE)" conf/goanysync.service
 	@install --mode=0755 --target-directory="$(INSTALL_BIN)" "$(BUILDDIR)/$(BIN)"
