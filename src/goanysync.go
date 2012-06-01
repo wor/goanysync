@@ -297,7 +297,10 @@ func main() {
 
     // For now don't allow synchronous runs at all, in one might lock per synch
     // dir, if such functionality would be needed.
-    processLockFile := path.Join(copts.tmpfsPath, ".goanysync.lock")
+    // "/run/goanysync" is path is configured in tmpfiles.d and should only
+    // be root writable
+    // TODO: check that /run/lock/goanysync exists and is of right perm (0755)
+    const processLockFile string = "/run/goanysync/process.lock"
     for !getLock(processLockFile) {
         // TODO: use inotify when go provides an interface for it
         time.Sleep(time.Millisecond*100)
