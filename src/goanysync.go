@@ -18,6 +18,7 @@ import (
     "path"
     "regexp"
     "syscall"
+    "time"
 )
 
 // mkdirAll creates a directory named path,
@@ -113,7 +114,7 @@ func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { /
 
 // pathNameGen generates volatile and backup path names and a regex string for
 // matching volatile path name.
-func pathNameGen(s string, tmpfs string, uid uint, gid uint) (volatilePath string, backupPath string, volatilePathRe string) { // {{{
+func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPath, volatilePathRe string) { // {{{
     volatilePrefix := path.Join(tmpfs, "goanysync-")
     const backupPostfix  string = "-backup_goanysync"
 
@@ -126,6 +127,18 @@ func pathNameGen(s string, tmpfs string, uid uint, gid uint) (volatilePath strin
     backupPath = s + backupPostfix
     return
 } // }}}
+
+// Sync path locking to prevent synchronous operations
+func getLock(lockName string) bool {
+    return os.Mkdir(lockName, 0600) == nil
+}
+
+func releaseLock(lockName string) {
+    if err := os.Remove(lockName); err != nil {
+        log.Printf("releaseLock error: %s\n... This should not happen, panicing..", err)
+        panic(err)
+    }
+}
 
 // --------------------------------------------------------------------------
 
@@ -281,6 +294,14 @@ func main() {
     if verbose {
         copts.Print()
     }
+
+    // For now don't allow synchronous runs at all, in one might lock per synch
+    // dir, if such functionality would be needed.
+    processLockFile := path.Join(copts.tmpfsPath, ".goanysync.lock")
+    for !getLock(processLockFile) {
+        time.Sleep(time.Millisecond*100)
+    }
+    defer releaseLock(processLockFile)
 
     switch flag.Arg(0) {
     case "check":
