@@ -299,6 +299,7 @@ func main() {
     // dir, if such functionality would be needed.
     processLockFile := path.Join(copts.tmpfsPath, ".goanysync.lock")
     for !getLock(processLockFile) {
+        // TODO: use inotify when go provides an interface for it
         time.Sleep(time.Millisecond*100)
     }
     defer releaseLock(processLockFile)
