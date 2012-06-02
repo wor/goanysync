@@ -6,13 +6,14 @@ PREFIX      ?= $(DESTDIR)/usr
 MANPREFIX   ?= $(PREFIX)/share/man
 
 # install paths
-INSTALL_BIN     = $(PREFIX)/bin
-INSTALL_MAN1    = $(MANPREFIX)/man1
-INSTALL_SERVICE = $(PREFIX)/lib/systemd/system
-INSTALL_ETC     = $(DESTDIR)/etc
-INSTALL_RCD     = $(INSTALL_ETC)/rc.d
-INSTALL_CRONJOB = $(INSTALL_ETC)/cron.hourly
-SYSCONFDIR      = $(PREFIX)/etc
+INSTALL_BIN       = $(PREFIX)/bin
+INSTALL_MAN1      = $(MANPREFIX)/man1
+INSTALL_SERVICE   = $(PREFIX)/lib/systemd/system
+INSTALL_ETC       = $(DESTDIR)/etc
+INSTALL_RCD       = $(INSTALL_ETC)/rc.d
+INSTALL_CRONJOB   = $(INSTALL_ETC)/cron.hourly
+INSTALL_TMPFILESD = $(PREFIX)/lib/tmpfiles.d
+SYSCONFDIR        = $(PREFIX)/etc
 
 SRCDIR      := src
 DOCDIR      := doc
@@ -59,7 +60,8 @@ clean:
 install: all
 	@[[ -f /etc/arch-release ]] && \
 		install -D --mode=0755 script/gsd      "$(INSTALL_RCD)/gsd"
-	#@install -D --mode=0744 conf/gsd.cronjob   "$(INSTALL_CRONJOB)/gsd"
+	@install -D --mode=0744 conf/gsd.cronjob   "$(INSTALL_CRONJOB)/gsd"
+	@install -D --mode=0644 conf/tmpfiles.conf "$(INSTALL_TMPFILESD)/goanysync.conf"
 	@mkdir -p --mode=0755 "$(INSTALL_SERVICE)" "$(INSTALL_BIN)" "$(INSTALL_ETC)" "$(INSTALL_MAN1)"
 	@install --mode=0644 --target-directory="$(INSTALL_SERVICE)" conf/goanysync.service
 	@install --mode=0755 --target-directory="$(INSTALL_BIN)" "$(BUILDDIR)/$(BIN)"
