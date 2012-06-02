@@ -170,11 +170,12 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
     return
 } // }}}
 
-// sync replaces given paths in syncSources with symlinks to directories
-// under given tmpfs path. Also it creates a backup directory for every
-// syncSource path. If sync is called consecutively for same syncSources it
-// syncs content from tmpfs paths to backup paths.
-func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
+// initSync does initial preparation for syncing and if preparations already
+// done it does nothing so it should be safe to call in any case. Initial
+// preparation incorporates following acts: 1. Replacement of given paths in
+// syncSources with symlinks to directories under given tmpfs path. 2. Creation
+// of a backup directory for every syncSource path.
+func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
     for _, s := range *syncSources {
         var (
             fi       os.FileInfo
@@ -183,7 +184,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         )
 
         if fi, uid, gid, err = isValidSource(s); err != nil {
-            log.Printf("sync error: %s\n... Skipping path: %s", err, s)
+            log.Printf("initSync error: %s\n... Skipping path: %s", err, s)
             continue
         }
 
@@ -195,7 +196,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         // read the tmpfs volatile target dir, so we use the originals
         // permissions.
         if err := mkdirAll(volatilePath, fi.Mode(), uid, gid); err != nil { // {{{
-            log.Printf("sync error (volatile path creation): %s\n... Skipping path: %s", err, s)
+            log.Printf("initSync error (volatile path creation): %s\n... Skipping path: %s", err, s)
             continue
         }   // }}}
 
@@ -205,20 +206,62 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
             // TODO: don't ignore errors
             os.Rename(s, backupPath)
             if linkError := os.Symlink(volatilePath, s); linkError != nil {
-                log.Printf("sync error (symlink): %s\n... Skipping path: %s", err, s)
+                log.Printf("initSync error (symlink): %s\n... Skipping path: %s", err, s)
                 os.Rename(backupPath, s)
                 continue
             }
             // Let's do initial sync to volatile
-            cmd := exec.Command(syncerBin, "-a", backupPath + "/", s)
+            cmd := exec.Command(syncerBin, "-a", "--delete", backupPath + "/", s)
             if err := cmd.Run(); err != nil {
-                log.Printf("sync error (volatile): %s\n... With command: %s\n... Skipping path: %s", err, cmd, s)
+                log.Printf("initSync error (volatile): %s\n... With command: %s\n... Skipping path: %s", err, cmd, s)
                 os.Rename(backupPath, s)
             }
             continue
+        } else {
+            log.Printf("initSync info: sync path was already initialized: %s\n", s)
+        } // }}}
+    }
+    return
+} // }}}
+
+// sync syncs content from tmpfs paths to backup paths. It expects that initSync
+// has been called for the syncSources.
+func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
+    for _, s := range *syncSources {
+        var (
+            uid, gid uint
+            err      error
+        )
+
+        if _, uid, gid, err = isValidSource(s); err != nil {
+            log.Printf("sync error: %s\n... Skipping path: %s", err, s)
+            continue
+        }
+
+        // Volatile dirs name is based on orginal dir's name, uid and gid
+        volatilePath, backupPath, _ := pathNameGen(s, tmpfs, uid, gid)
+
+        // Volatile path must exists
+        if !exists(volatilePath) {
+            // syncInit failed or not called for the sync path
+            log.Printf("sync error (volatile path did not exist): %s\n... Skipping path: %s", volatilePath, s)
+            continue
+        }
+
+        // Target must be a symlink to the volatile path
+        if target, err := os.Readlink(s); err != nil || target != volatilePath { // {{{
+            log.Printf("sync error (volatile path was not linked): %s\n... Skipping path: %s", err, s)
+            continue
         }   // }}}
 
-        // Everything was ready so we just sync from volatile tmpfs to backup
+        // Backup path must exists
+        if !exists(backupPath) {
+            // syncInit failed or not called for the sync path
+            log.Printf("sync error (backup path did not exist): %s\n... Skipping path: %s", backupPath, s)
+            continue
+        }
+
+        // Everything was ok, so we just sync from volatile tmpfs to backup
         cmd := exec.Command(syncerBin, "-a", "--delete", s + "/", backupPath)
         if err := cmd.Run(); err != nil { // {{{
             log.Printf("sync error (backup): %s\n... With command: %s\n... Sync to backup failed for: %s", err, cmd, s)
@@ -228,7 +271,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
     return
 }   // }}}
 
-// unsync removes symbolic linkin to tmpfs and restores original from backup
+// unsync removes symbolic linkin to tmpfs and restores original from backup.
 func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
     for _, s := range *syncSources {
         var (
@@ -309,10 +352,11 @@ func main() {
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
         fmt.Fprintf(os.Stderr, "  Commands:\n")
-        fmt.Fprintf(os.Stderr, "   sync\t\tReplaces sync directories with symlinks to tmpfs and if already done syncs content from tmpfs to the backup.\n")
+        fmt.Fprintf(os.Stderr, "   initsync\t\tReplaces sync directories with symlinks to tmpfs while syncing orginal content there.\n")
+        fmt.Fprintf(os.Stderr, "   sync\t\tSyncs content from tmpfs to the backup.\n")
         fmt.Fprintf(os.Stderr, "   unsync\tRestores orginal state of sync directories.\n")
         fmt.Fprintf(os.Stderr, "   check\tChecks if sync was called without unsync before tmpfs was cleared.\n")
-        fmt.Fprintf(os.Stderr, "   start\tAlias for running check and sync.\n")
+        fmt.Fprintf(os.Stderr, "   start\tAlias for running check and initsync.\n")
         fmt.Fprintf(os.Stderr, "   stop\t\tAlias for running sync and unsync.\n")
         fmt.Fprintf(os.Stderr, "  Options:\n")
         flag.PrintDefaults()
@@ -350,13 +394,15 @@ func main() {
     switch flag.Arg(0) {
     case "check":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
+    case "initsync":
+        initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
     case "sync":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
     case "unsync":
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
     case "start":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
-        sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
+        initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
     case "stop":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
