@@ -11,25 +11,18 @@ start() {
   if [[ -f /run/daemons/${daemon_name} ]]; then
     stat_die
   else
-    /usr/bin/${daemon_name} check
+    /usr/bin/${daemon_name} start
     add_daemon ${daemon_name}
-    /usr/bin/${daemon_name} sync
     stat_done
   fi
 }
 
 sync() {
-  if [[ -f /run/daemons/${daemon_name} ]]; then
-    stat_busy "Starting ${daemon_name} daemon"
-  else
-    stat_busy "Starting to sync"
+  if ! [[ -f /run/daemons/${daemon_name} ]]; then
+    stat_die
   fi
-
+  stat_busy "${daemon_name} starts to sync"
   /usr/bin/${daemon_name} sync
-
-  if [[ -f /run/daemons/${daemon_name} ]]; then
-    add_daemon ${daemon_name}
-  fi
   stat_done
 }
 
@@ -38,8 +31,7 @@ stop() {
   if [[ ! -f /run/daemons/${daemon_name} ]]; then
     stat_die  # check if already stopped
   else
-    /usr/bin/${daemon_name} sync
-    /usr/bin/${daemon_name} unsync
+    /usr/bin/${daemon_name} stop
     rm_daemon ${daemon_name}
     stat_done
   fi
