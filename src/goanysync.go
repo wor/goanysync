@@ -21,15 +21,16 @@ import (
     "time"
 )
 
-// mkdirAll creates a directory named path,
-// along with any necessary parents, and returns nil,
-// or else returns an error.
-// The permission bits perm are used for all
-// directories that mkdirAll creates. Also given uid and gid are set.
-// If path is already a directory, mkdirAll does nothing
-// and returns nil.
+// mkdirAll creates a directory named path, along with any necessary parents,
+// and returns nil, or else returns an error. The permission bits perm are used
+// for all directories that mkdirAll creates. Also given uid and gid are set. If
+// path is already a directory, mkdirAll does nothing and returns nil.
+//
 // This function is a copy of os.MkdirAll with uid and gid setting.
-func mkdirAll(path string, perm os.FileMode, uid uint, gid uint) error {
+//
+// TODO: this version should check and ensure that given perm is set for all
+//       path parts
+func mkdirAll(path string, perm os.FileMode, uid uint, gid uint) error { // {{{
     // If path exists, stop with success or error.
     dir, err := os.Stat(path)
     if err == nil {
@@ -74,7 +75,7 @@ func mkdirAll(path string, perm os.FileMode, uid uint, gid uint) error {
         return err1
     }
     return nil
-}
+} // }}}
 
 // exists checks whether given file name exists.
 func exists(fn string) bool { // {{{
@@ -128,17 +129,18 @@ func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPat
     return
 } // }}}
 
-// Sync path locking to prevent synchronous operations
-func getLock(lockName string) bool {
+// getLock acquires the file lock.
+func getLock(lockName string) bool { // {{{
     return os.Mkdir(lockName, 0600) == nil
-}
+} // }}}
 
-func releaseLock(lockName string) {
+// releaseLock releases the file lock.
+func releaseLock(lockName string) { // {{{
     if err := os.Remove(lockName); err != nil {
         log.Printf("releaseLock error: %s\n... This should not happen, panicing..", err)
         panic(err)
     }
-}
+} // }}}
 
 // --------------------------------------------------------------------------
 
