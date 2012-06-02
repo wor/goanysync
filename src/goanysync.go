@@ -265,6 +265,37 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
     return
 } // }}}
 
+// checkLockFileDir checks if directory which contains the lock file exists and
+// has right permissions and owner.
+func checkLockFileDir(dir string) (err error) { // {{{
+    var fi os.FileInfo
+
+    if fi, err = os.Stat(dir); err != nil {
+        return
+    }
+
+    if !fi.IsDir() {
+        err = errors.New("Lock files parent dir was not a directory: " + dir)
+        return
+    }
+
+    if fi.Mode().Perm() != 0755 {
+        err = errors.New("Lock file parent dir did not have right permissions != 755")
+        return
+    }
+
+    var uid uint
+    if uid, _, err = getFileUserAndGroupId(fi); err != nil {
+        return
+    }
+
+    if uid != 0 {
+        err = errors.New("Lock file parent dir was not root owned.")
+        return
+    }
+    return
+} // }}}
+
 func main() {
     const errorMessage string = "Error: non valid command provided."
     // Check that at least one argument given
@@ -295,16 +326,23 @@ func main() {
         copts.Print()
     }
 
-    // For now don't allow synchronous runs at all, in one might lock per synch
-    // dir, if such functionality would be needed.
-    // "/run/goanysync" is path is configured in tmpfiles.d and should only
-    // be root writable
-    // TODO: check that /run/lock/goanysync exists and is of right perm (0755)
+    // For now don't allow synchronous calls at all. 
+    // (In future one might lock per synch dir, if such functionality will be needed.)
+    // "/run/goanysync" is path is configured in tmpfiles.d and should be only
+    // root writable
     const processLockFile string = "/run/goanysync/process.lock"
+    // Check that lock files base path
+    if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
+        log.Fatalln("Lock file path error:", err)
+    }
+
+    // Locking to prevent synchronous operations
     for !getLock(processLockFile) {
+        // TODO: specify max wait time
         // TODO: use inotify when go provides an interface for it
         time.Sleep(time.Millisecond*100)
     }
+    // If os.Exit() is called remember to remove the lock file, manually.
     defer releaseLock(processLockFile)
 
     switch flag.Arg(0) {
@@ -324,6 +362,7 @@ func main() {
         log.Println(errorMessage)
         fmt.Println()
         flag.Usage()
+        releaseLock(processLockFile)
         os.Exit(1)
     }
     return
