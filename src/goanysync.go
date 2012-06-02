@@ -372,10 +372,9 @@ func main() {
         copts.Print()
     }
 
-    // For now don't allow synchronous calls at all. 
-    // (In future one might lock per synch dir, if such functionality will be needed.)
+    // For now do not allow synchronous calls at all.
     // "/run/goanysync" is path is configured in tmpfiles.d and should be only
-    // root writable
+    // root writable.
     const processLockFile string = "/run/goanysync/process.lock"
     // Check that lock files base path
     if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
