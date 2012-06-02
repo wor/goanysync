@@ -272,7 +272,7 @@ func main() {
         log.Fatalln(errorMessage)
     }
     configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
-    verbose := *flag.Bool("v", false, "Be more verbose.")
+    verbose := flag.Bool("v", false, "Be more verbose.")
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
         fmt.Fprintf(os.Stderr, "  Commands:\n")
@@ -291,7 +291,7 @@ func main() {
         log.Fatalln("Config file error:", err)
     }
 
-    if verbose {
+    if *verbose {
         copts.Print()
     }
 
