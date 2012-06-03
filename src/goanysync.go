@@ -359,18 +359,21 @@ func checkLockFileDir(dir string) (err error) { // {{{
     return
 } // }}}
 
-func main() {
+// runMain is a main function which returns programs exit value.
+func runMain() int {
     var err error
     LOG, err = syslog.New(syslog.LOG_INFO, "goanysync")
     if err != nil {
-        log.Fatalln("Error: Syslog logger initialization failed with error:", err)
+        log.Println("Error: Syslog logger initialization failed with error:", err)
+        return 1
     }
+    defer LOG.Close()
 
     const errorMessage string = "Error: non valid command provided."
     // Check that at least one argument given
     if len(os.Args) < 2 {
-        LOG.Close()
-        log.Fatalln(errorMessage)
+        log.Println(errorMessage)
+        return 1
     }
     configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
     verbose := flag.Bool("v", false, "Be more verbose.")
@@ -391,8 +394,8 @@ func main() {
     copts, err := ReadConfigFile(*configFilePath)
     if err != nil {
         LOG.Crit("Config file error: " + err.Error())
-        LOG.Close()
-        log.Fatalln("Config file error:", err)
+        log.Println("Config file error:", err)
+        return 1
     }
 
     if *verbose {
@@ -406,8 +409,8 @@ func main() {
     // Check that lock files base path
     if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
         LOG.Crit("Lock file path error: " + err.Error())
-        LOG.Close()
-        log.Fatalln("Lock file path error:", err)
+        log.Println("Lock file path error:", err)
+        return 1
     }
 
     // Locking to prevent synchronous operations
@@ -438,10 +441,11 @@ func main() {
         log.Println(errorMessage)
         fmt.Println()
         flag.Usage()
-        releaseLock(processLockFile)
-        LOG.Close()
-        os.Exit(1)
+        return 1
     }
-    LOG.Close()
-    return
+    return 0
+}
+
+func main() {
+    os.Exit(runMain())
 }
