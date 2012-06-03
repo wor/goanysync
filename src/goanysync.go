@@ -377,7 +377,7 @@ func main() {
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
         fmt.Fprintf(os.Stderr, "  Commands:\n")
-        fmt.Fprintf(os.Stderr, "   initsync\t\tReplaces sync directories with symlinks to tmpfs while syncing orginal content there.\n")
+        fmt.Fprintf(os.Stderr, "   initsync\tReplaces sync directories with symlinks to tmpfs while syncing orginal content there.\n")
         fmt.Fprintf(os.Stderr, "   sync\t\tSyncs content from tmpfs to the backup.\n")
         fmt.Fprintf(os.Stderr, "   unsync\tRestores orginal state of sync directories.\n")
         fmt.Fprintf(os.Stderr, "   check\tChecks if sync was called without unsync before tmpfs was cleared.\n")
