@@ -391,6 +391,7 @@ func runMain() int {
     }
     flag.Parse()
 
+    // Read config file
     copts, err := ReadConfigFile(*configFilePath)
     if err != nil {
         LOG.Crit("Config file error: " + err.Error())
