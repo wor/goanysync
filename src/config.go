@@ -3,8 +3,8 @@ package main
 import (
     "github.com/wor/goconfig/config"
     "strings"
+    "errors"
     "fmt"
-    "log"
 )
 
 // configOptions to be read from the config file.
@@ -28,7 +28,6 @@ func (self *ConfigOptions) Print() {
 // readConfigFile reads config file and checks that necessary information was
 // given. After this it returns the read options in configOptions struct.
 func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
-    const configError string = "Config error: "
     var c *config.Config
     c, err = config.Read(cfp, "# ", "=", true, true)
     if (err != nil) {
@@ -46,10 +45,12 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
 
     // Check that given options are valid to some degree
     if len(tmpfsPath) < 1 {
-        log.Fatalln(configError, "Empty TMPFS path defined.")
+        err = errors.New("Empty TMPFS path defined.")
+        return
     }
     if len(syncPaths) < 1 {
-        log.Fatalln(configError, "Empty WHATTOSYNC paths defined.")
+        err = errors.New("Empty WHATTOSYNC paths defined.")
+        return
     }
     if len(syncerBin) < 1 {
         // TODO: only do this if rsync can be found from PATH
@@ -66,7 +67,8 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
     }
     paths := strings.FieldsFunc(syncPaths, fieldFunc)
     if len(paths) < 1 {
-        log.Fatalln(configError, "Empty WHATTOSYNC paths defined.")
+        err = errors.New("Empty WHATTOSYNC paths defined.")
+        return
     }
     for i, v := range paths {
         paths[i] = strings.TrimSpace(v)
