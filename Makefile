@@ -59,8 +59,8 @@ clean:
 .PHONY: install
 install: all
 	@[[ -f /etc/arch-release ]] && \
-		install -D --mode=0755 script/gsd      "$(INSTALL_RCD)/gsd"
-	@install -D --mode=0744 conf/gsd.cronjob   "$(INSTALL_CRONJOB)/gsd"
+		install -D --mode=0755 script/goanysync "$(INSTALL_RCD)/goanysync"
+	@install -D --mode=0744 conf/goanysync.cronjob   "$(INSTALL_CRONJOB)/goanysync"
 	@install -D --mode=0644 conf/tmpfiles.conf "$(INSTALL_TMPFILESD)/goanysync.conf"
 	@mkdir -p --mode=0755 "$(INSTALL_SERVICE)" "$(INSTALL_BIN)" "$(INSTALL_ETC)" "$(INSTALL_MAN1)"
 	@install --mode=0644 --target-directory="$(INSTALL_SERVICE)" conf/goanysync.service
