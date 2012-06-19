@@ -1,69 +1,161 @@
 # Requires gzip, txt2man
-# TODO add txt2man doc generation
 
-DESTDIR     ?= ""
-PREFIX      ?= $(DESTDIR)/usr
-MANPREFIX   ?= $(PREFIX)/share/man
+# autoconf input (no go tool support yet)
+#GOC = @GOC@
+GOC = go
+DEFS = @DEFS@
+#LIBS = @LIBS@
+#GOFLAGS = @GOFLAGS@
 
-# install paths
-INSTALL_BIN       = $(PREFIX)/bin
-INSTALL_MAN1      = $(MANPREFIX)/man1
-INSTALL_SERVICE   = $(PREFIX)/lib/systemd/system
-INSTALL_ETC       = $(DESTDIR)/etc
-INSTALL_RCD       = $(INSTALL_ETC)/rc.d
-INSTALL_CRONJOB   = $(INSTALL_ETC)/cron.hourly
-INSTALL_TMPFILESD = $(PREFIX)/lib/tmpfiles.d
-SYSCONFDIR        = $(PREFIX)/etc
+INSTALL         = @INSTALL@
+INSTALL_DATA    = @INSTALL_DATA@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_SCRIPT  = @INSTALL_SCRIPT@
 
-SRCDIR      := src
-DOCDIR      := doc
-BUILDDIR    := build
-BIN         := goanysync
+# VPATH-specific substitution variables
+srcdir = @srcdir@
+VPATH  = @srcdir@
+
+# @configure_input@
+# Package-specific substitution variables
+package = @PACKAGE_NAME@
+version = @PACKAGE_VERSION@
+tarname = @PACKAGE_TARNAME@
+distdir = $(tarname)-$(version)
+
+# Prefix-specific
+prefix      = @prefix@
+bindir      = @bindir@
+exec_prefix = @exec_prefix@
+mandir      = @mandir@
+man1dir     = @man1dir@
+sysconfdir  = @sysconfdir@
+datarootdir = @datarootdir@
+datadir     = @datadir@
+libdir      = @libdir@
+
+man1dir     = $(mandir)/man1/
+
+INSTALL_SERVICE   = $(libdir)/systemd/system
+INSTALL_RCD       = $(sysconfdir)/rc.d
+INSTALL_CRONJOB   = $(sysconfdir)/cron.hourly
+INSTALL_TMPFILESD = $(libdir)/tmpfiles.d
+
+
+SRCDIR_NAME := src
+SRCDIR      := $(srcdir)/$(SRCDIR_NAME)
+DOCDIR      := $(srcdir)/doc
 
 SRC_POSTFIX := .go
 DOC_POSTFIX := .man.txt
 MAN_POSTFIX := .1.gz
 SOURCES     := $(wildcard $(SRCDIR)/*$(SRC_POSTFIX))
-DOCS        := $(wildcard $(DOCDIR)/*$(DOC_POSTFIX))
+DOC_SOURCES := $(wildcard $(DOCDIR)/*$(DOC_POSTFIX))
 
 # Man page targets
-MANPAGES := $(DOCS:$(DOCDIR)/%=$(BUILDDIR)/%)
+MANPAGES := $(DOC_SOURCES:$(DOCDIR)/%=%)
 MANPAGES := $(MANPAGES:%$(DOC_POSTFIX)=%$(MAN_POSTFIX))
-
-# Create the build dir
-ifeq ($(wildcard $(BUILDDIR)/),)
-	_       := $(shell mkdir -p $(BUILDDIR))
-endif
 
 ##############################################
 
 .PHONY: all
-all: $(BUILDDIR)/$(BIN) $(MANPAGES)
+all: $(package) docs
 
+.PHONY: docs
+docs: $(MANPAGES)
 
-$(BUILDDIR)/$(BIN): $(SOURCES)
-	@go build -o $(BUILDDIR)/$(BIN) $(SOURCES)
+$(package): $(SOURCES)
+	$(GOC) build $(GOFLAGS) -o $(package) $^
 
+%$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
+	txt2man $^ | gzip -9 -c > $@
 
-$(BUILDDIR)/%$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
-	@txt2man $(DOCDIR)/$*$(DOC_POSTFIX) | gzip -9 -c > $(BUILDDIR)/$*$(MAN_POSTFIX)
+Makefile: Makefile.in config.status
+	./config.status $@
 
+config.status: configure
+	./config.status --recheck
 
-.PHONY: clean
-clean:
-	@rm -f $(BUILDDIR)/$(BIN)
-	@rm -f $(BUILDDIR)/*.1.gz
-	@if [[ "${BUILDDIR}" != "." && "${BUILDDIR}" != "./" ]]; then rmdir -- $(BUILDDIR); fi;
-
+#
+# install/uninstall
+#
 
 .PHONY: install
 install: all
-	@[[ -f /etc/arch-release ]] && \
-		install -D --mode=0755 script/goanysync "$(INSTALL_RCD)/goanysync"
-	@install -D --mode=0744 conf/goanysync.cronjob   "$(INSTALL_CRONJOB)/goanysync"
-	@install -D --mode=0644 conf/tmpfiles.conf "$(INSTALL_TMPFILESD)/goanysync.conf"
-	@mkdir -p --mode=0755 "$(INSTALL_SERVICE)" "$(INSTALL_BIN)" "$(INSTALL_ETC)" "$(INSTALL_MAN1)"
-	@install --mode=0644 --target-directory="$(INSTALL_SERVICE)" conf/goanysync.service
-	@install --mode=0755 --target-directory="$(INSTALL_BIN)" "$(BUILDDIR)/$(BIN)"
-	@install --mode=0644 --target-directory="$(INSTALL_ETC)" conf/goanysync.conf
-	@install --mode=0644 --target-directory="$(INSTALL_MAN1)" $(MANPAGES)
+	# TODO: move test to configure.ac
+	[[ -f /etc/arch-release ]] && \
+		$(INSTALL) -D --mode=0755 script/$(package) "$(DESTDIR)$(INSTALL_RCD)/$(package)"
+	$(INSTALL) -D --mode=0744 conf/$(package).cronjob   "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
+	$(INSTALL_DATA) -D conf/tmpfiles.conf "$(DESTDIR)$(INSTALL_TMPFILESD)/$(package).conf"
+	mkdir -p --mode=0755 \
+		"$(DESTDIR)$(INSTALL_SERVICE)" \
+		"$(DESTDIR)$(bindir)" \
+		"$(DESTDIR)$(sysconfdir)" \
+		"$(DESTDIR)$(man1dir)"
+	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(INSTALL_SERVICE)" conf/$(package).service
+	$(INSTALL) --mode=0755 --target-directory="$(DESTDIR)$(bindir)" "$(package)"
+	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(sysconfdir)" conf/$(package).conf
+	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(man1dir)" $(MANPAGES)
+
+.PHONY: uninstall
+uninstall:
+	-rm $(DESTDIR)$(bindir)/$(package)
+	# TODO: add others and modify distcheck
+
+#
+# clean
+#
+.PHONY: maintainer-clean
+maintainer-clean: clean distclean
+	@#TODO?: aclocal.m4 missing
+	rm -f config.status config.log
+
+.PHONY: clean
+clean:
+	rm -f $(package)
+	rm -f $(package).1.gz
+
+.PHONY: distclean
+distclean:
+	rm -f $(distdir).tar.gz
+	if test -d $(distdir); then rm -rf $(distdir); fi
+
+#
+# dist creation
+#
+.PHONY: dist
+dist: $(distdir).tar.gz
+
+$(distdir).tar.gz: $(distdir)
+	tar chof - $(distdir) | gzip -9 -c > $@
+	rm -rf $(distdir)
+
+# TODO: here
+$(distdir): distclean FORCE
+	mkdir -p $(distdir)
+	cp $(srcdir)/configure.ac $(distdir)/
+	cp $(srcdir)/configure $(distdir)/
+	cp $(srcdir)/Makefile.in $(distdir)/
+	mkdir -p $(distdir)/$(SRCDIR_NAME)
+	cp $(SRCDIR)/*$(SRC_POSTFIX) $(distdir)/$(SRCDIR_NAME)/
+	mkdir -p $(distdir)/script
+	cp $(srcdir)/script/$(package) $(distdir)/script/
+	mkdir -p $(distdir)/conf
+	cp $(srcdir)/conf/tmpfiles.conf $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).cronjob $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).service $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).conf $(distdir)/conf/
+	mkdir -p $(distdir)/doc
+	cp $(srcdir)/doc/$(package)$(DOC_POSTFIX) $(distdir)/doc/
+
+.PHONY: distcheck
+distcheck: $(distdir).tar.gz
+	gzip -cd $(distdir).tar.gz | tar xvf -
+	cd $(distdir) && ./configure
+	cd $(distdir) && $(MAKE) all
+	cd $(distdir) && $(MAKE) DESTDIR=$${PWD}/_inst install
+	rm -rf $(distdir)
+
+.PHONY: FORCE
+FORCE:
+
