@@ -1,0 +1,2 @@
+#!/bin/sh
+@bindir@/@PACKAGE_NAME@ &> /dev/null

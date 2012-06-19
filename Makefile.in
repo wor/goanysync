@@ -7,6 +7,7 @@ DEFS = @DEFS@
 #LIBS = @LIBS@
 #GOFLAGS = @GOFLAGS@
 
+SED             = @SED@
 INSTALL         = @INSTALL@
 INSTALL_DATA    = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -70,7 +71,7 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	txt2man $^ | gzip -9 -c > $@
 
-Makefile: Makefile.in config.status
+conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in config.status
 	./config.status $@
 
 config.status: configure
@@ -86,6 +87,8 @@ install: all
 	[[ -f /etc/arch-release ]] && \
 		$(INSTALL) -D --mode=0755 script/$(package) "$(DESTDIR)$(INSTALL_RCD)/$(package)"
 	$(INSTALL) -D --mode=0744 conf/$(package).cronjob   "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
+	# Subsitute shell variables in the cronjob file
+	$(SED) -i -e 's|$${exec_prefix}|$(exec_prefix)|g' "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
 	$(INSTALL_DATA) -D conf/tmpfiles.conf "$(DESTDIR)$(INSTALL_TMPFILESD)/$(package).conf"
 	mkdir -p --mode=0755 \
 		"$(DESTDIR)$(INSTALL_SERVICE)" \
@@ -108,7 +111,7 @@ uninstall:
 .PHONY: maintainer-clean
 maintainer-clean: clean distclean
 	@#TODO?: aclocal.m4 missing
-	rm -f config.status config.log
+	rm -f config.status config.log Makefile conf/$(package).cronjob
 
 .PHONY: clean
 clean:

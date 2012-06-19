@@ -14,6 +14,7 @@ AC_CONFIG_SRCDIR(src/goanysync.go)
 
 # Checks for programs.
 AC_PROG_INSTALL
+AC_PROG_SED
 
 # Checks for libraries.
 
@@ -23,7 +24,8 @@ AC_PROG_INSTALL
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([Makefile:Makefile.in])
+AC_CONFIG_FILES([Makefile:Makefile.in
+                 conf/goanysync.cronjob:conf/goanysync.cronjob.in])
 
 #AC_CONFIG_FILES([Makefile:Makefile.in
 #    src/Makefile:src/Makefile.in
