@@ -6,7 +6,7 @@
 TMPFS = /dev/shm/gosyncd
 
 # rsync binary file to use.
-RSYNC_BIN = /usr/bin/rsync
+RSYNC_BIN = @RSYNC_PATH@
 
 # Define source directories in the WHATTOSYNC comma-separated list. These
 # directories content will be moved under TMPFS path and the directory itself

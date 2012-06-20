@@ -25,7 +25,11 @@ else
     AC_MSG_RESULT(no)
 fi
 
+AC_PATH_PROG([RSYNC_PATH], [rsync])
+
+
 AC_CONFIG_FILES([Makefile:Makefile.in
-                 conf/goanysync.cronjob:conf/goanysync.cronjob.in])
+                 conf/goanysync.cronjob:conf/goanysync.cronjob.in
+                 conf/goanysync.conf:conf/goanysync.conf.in])
 
 AC_OUTPUT
