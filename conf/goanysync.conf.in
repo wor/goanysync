@@ -1,9 +1,9 @@
 #
-# /etc/gosyncd.conf
+# /etc/goanysync.conf
 #
 
 # Define tmpfs base path, this is where WHATTOSYNC directories will be linked.
-TMPFS = /dev/shm/gosyncd
+TMPFS = /dev/shm/@PACKAGE_NAME@
 
 # rsync binary file to use.
 RSYNC_BIN = @RSYNC_PATH@
