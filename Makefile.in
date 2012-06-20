@@ -75,7 +75,7 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	txt2man $^ | gzip -9 -c > $@
 
-conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in config.status
+conf/$(package).conf conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in config.status
 	./config.status $@
 
 config.status: configure
@@ -114,7 +114,7 @@ uninstall:
 .PHONY: maintainer-clean
 maintainer-clean: clean distclean
 	@#TODO?: aclocal.m4 missing
-	rm -f config.status config.log Makefile conf/$(package).cronjob
+	rm -f config.status config.log Makefile conf/$(package).cronjob conf/$(package).conf
 
 .PHONY: clean
 clean:
@@ -148,9 +148,9 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/script/$(package) $(distdir)/script/
 	mkdir -p $(distdir)/conf
 	cp $(srcdir)/conf/tmpfiles.conf $(distdir)/conf/
-	cp $(srcdir)/conf/$(package).cronjob $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).cronjob.in $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).service $(distdir)/conf/
-	cp $(srcdir)/conf/$(package).conf $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).conf.in $(distdir)/conf/
 	mkdir -p $(distdir)/doc
 	cp $(srcdir)/doc/$(package)$(DOC_POSTFIX) $(distdir)/doc/
 
