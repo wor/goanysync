@@ -1,5 +1,3 @@
-# Requires gzip, txt2man
-
 # autoconf input (no go tool support yet)
 #GOC = @GOC@
 GOC = go
@@ -8,6 +6,8 @@ DEFS = @DEFS@
 #GOFLAGS = @GOFLAGS@
 
 SED             = @SED@
+TXT2MAN         = @TXT2MAN_PATH@
+GZIP            = @GZIP_PATH@
 INSTALL         = @INSTALL@
 INSTALL_DATA    = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -63,8 +63,17 @@ MANPAGES := $(MANPAGES:%$(DOC_POSTFIX)=%$(MAN_POSTFIX))
 
 ##############################################
 
+ifneq ($(and $(TXT2MAN),$(GZIP)),)
+    DOC_PREQ = docs
+else
+    $(info Man page generation skipped without txt2man or gzip)
+    DOC_PREQ =
+endif
+
+##############################################
+
 .PHONY: all
-all: $(package) docs
+all: $(package) $(DOC_PREQ)
 
 .PHONY: docs
 docs: $(MANPAGES)
@@ -73,7 +82,7 @@ $(package): $(SOURCES)
 	$(GOC) build $(GOFLAGS) -o $(package) $^
 
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
-	txt2man $^ | gzip -9 -c > $@
+	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
 
 conf/$(package).conf conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in config.status
 	./config.status $@
@@ -101,7 +110,8 @@ install: all
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(INSTALL_SERVICE)" conf/$(package).service
 	$(INSTALL) --mode=0755 --target-directory="$(DESTDIR)$(bindir)" "$(package)"
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(sysconfdir)" conf/$(package).conf
-	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(man1dir)" $(MANPAGES)
+	test "$(DOC_PREQ)x" == "docs" && \
+		$(INSTALL_DATA) --target-directory="$(DESTDIR)$(man1dir)" $(MANPAGES)
 
 .PHONY: uninstall
 uninstall:
@@ -126,14 +136,15 @@ distclean:
 	rm -f $(distdir).tar.gz
 	if test -d $(distdir); then rm -rf $(distdir); fi
 
+ifneq ($(GZIP),)
 #
-# dist creation
+# dist creation (requires gzip)
 #
 .PHONY: dist
 dist: $(distdir).tar.gz
 
 $(distdir).tar.gz: $(distdir)
-	tar chof - $(distdir) | gzip -9 -c > $@
+	tar chof - $(distdir) | $(GZIP) -9 -c > $@
 	rm -rf $(distdir)
 
 # TODO: here
@@ -156,11 +167,12 @@ $(distdir): distclean FORCE
 
 .PHONY: distcheck
 distcheck: $(distdir).tar.gz
-	gzip -cd $(distdir).tar.gz | tar xvf -
+	$(GZIP) -cd $(distdir).tar.gz | tar xvf -
 	cd $(distdir) && ./configure
 	cd $(distdir) && $(MAKE) all
 	cd $(distdir) && $(MAKE) DESTDIR=$${PWD}/_inst install
 	rm -rf $(distdir)
+endif
 
 .PHONY: FORCE
 FORCE:

@@ -18,15 +18,23 @@ AC_PROG_SED
 
 AC_MSG_CHECKING(for Arch Linux distribution (for rc.d srcipt installation))
 if test -f "/etc/arch-release"; then
-    AC_SUBST(is_archlinux, [yes])
+    AC_SUBST([is_archlinux], [yes])
     AC_MSG_RESULT(yes)
 else
-    AC_SUBST(is_archlinux, [no])
+    AC_SUBST([is_archlinux], [no])
     AC_MSG_RESULT(no)
 fi
 
-AC_PATH_PROG([RSYNC_PATH], [rsync])
+AC_PATH_PROG([RSYNC_PATH], [rsync], [])
+if test "${ac_cv_path_RSYNC_PATH}x" == "x"; then
+    AC_MSG_ERROR([Could not find rsync.])
+fi
 
+# For man page generation
+AC_PATH_PROG([TXT2MAN_PATH], [txt2man], [])
+AC_PATH_PROG([GZIP_PATH], [gzip], [])
+
+# TODO: add test for goconfig lib
 
 AC_CONFIG_FILES([Makefile:Makefile.in
                  conf/goanysync.cronjob:conf/goanysync.cronjob.in
