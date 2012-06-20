@@ -16,20 +16,16 @@ AC_CONFIG_SRCDIR(src/goanysync.go)
 AC_PROG_INSTALL
 AC_PROG_SED
 
-# Checks for libraries.
-
-# Checks for header files.
-
-# Checks for typedefs, structures, and compiler characteristics.
-
-# Checks for library functions.
+AC_MSG_CHECKING(for Arch Linux distribution (for rc.d srcipt installation))
+if test -f "/etc/arch-release"; then
+    AC_SUBST(is_archlinux, [yes])
+    AC_MSG_RESULT(yes)
+else
+    AC_SUBST(is_archlinux, [no])
+    AC_MSG_RESULT(no)
+fi
 
 AC_CONFIG_FILES([Makefile:Makefile.in
                  conf/goanysync.cronjob:conf/goanysync.cronjob.in])
-
-#AC_CONFIG_FILES([Makefile:Makefile.in
-#    src/Makefile:src/Makefile.in
-#    lib/Makefile:lib/Makefile.in
-#    etc/proj.cfg:etc/proj.cfg.in])
 
 AC_OUTPUT

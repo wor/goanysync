@@ -24,6 +24,10 @@ version = @PACKAGE_VERSION@
 tarname = @PACKAGE_TARNAME@
 distdir = $(tarname)-$(version)
 
+# Test to check if archlinux [yes,no]
+# Affects the installation of rc.d script
+is_archlinux = @is_archlinux@
+
 # Prefix-specific
 prefix      = @prefix@
 bindir      = @bindir@
@@ -83,8 +87,7 @@ config.status: configure
 
 .PHONY: install
 install: all
-	# TODO: move test to configure.ac
-	[[ -f /etc/arch-release ]] && \
+	[[ ${is_archlinux} == "yes" ]] && \
 		$(INSTALL) -D --mode=0755 script/$(package) "$(DESTDIR)$(INSTALL_RCD)/$(package)"
 	$(INSTALL) -D --mode=0744 conf/$(package).cronjob   "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
 	# Subsitute shell variables in the cronjob file
