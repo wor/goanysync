@@ -119,7 +119,7 @@ maintainer-clean: clean distclean
 .PHONY: clean
 clean:
 	rm -f $(package)
-	rm -f $(package).1.gz
+	rm -f $(package)$(MAN_POSTFIX)
 
 .PHONY: distclean
 distclean:
