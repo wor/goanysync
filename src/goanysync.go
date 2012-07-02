@@ -372,7 +372,7 @@ func runMain() int {
     }
     defer LOG.Close()
 
-    const errorMessage string = "Error: non valid command provided."
+    const errorMessage string = "Error: invalid command provided."
     // Check that at least one argument given
     if len(os.Args) < 2 {
         log.Println(errorMessage)

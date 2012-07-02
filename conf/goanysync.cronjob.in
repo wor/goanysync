@@ -1,2 +1,2 @@
 #!/bin/sh
-@bindir@/@PACKAGE_NAME@ &> /dev/null
+@bindir@/@PACKAGE_NAME@ sync &> /dev/null
