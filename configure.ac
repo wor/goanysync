@@ -6,8 +6,8 @@ AC_INIT([goanysync], [1.0], [esa.maatta@iki.fi])
 
 AC_CONFIG_SRCDIR(src/goanysync.go)
 
-# Autoconf doesn't yet support "go" build tool,
-# which is by default only go compiler installed on arch linux.
+# XXX: Autoconf doesn't yet support "go" build tool,
+# which is by default only go compiler installed on Arch Linux.
 #_DEBUG_START_
 #AC_PROG_GO([go])
 #_DEBUG_END_
@@ -34,7 +34,8 @@ fi
 AC_PATH_PROG([TXT2MAN_PATH], [txt2man], [])
 AC_PATH_PROG([GZIP_PATH], [gzip], [])
 
-# TODO: add test for goconfig lib
+# XXX: As AC_PROG_GO does not work, checking for go libs is not as straightforward.
+#AC_SEARCH_LIBS([New], [goconfig], [have_goconfig=yes])
 
 AC_CONFIG_FILES([Makefile:Makefile.in
                  conf/goanysync.cronjob:conf/goanysync.cronjob.in
