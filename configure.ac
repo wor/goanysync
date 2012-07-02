@@ -16,8 +16,12 @@ AC_CONFIG_SRCDIR(src/goanysync.go)
 AC_PROG_INSTALL
 AC_PROG_SED
 
+# Archlinux specific configuration
 AC_MSG_CHECKING(for Arch Linux distribution (for rc.d srcipt installation))
 if test -f "/etc/arch-release"; then
+    # Set right prefix and sysconfdir if not given
+    test "$prefix" = "NONE" && prefix=/usr
+    test "$sysconfdir" = "\${prefix}/etc" && sysconfdir=/etc
     AC_SUBST([is_archlinux], [yes])
     AC_MSG_RESULT(yes)
 else
