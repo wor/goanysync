@@ -126,7 +126,9 @@ maintainer-clean: clean distclean
 	@#TODO?: aclocal.m4 missing
 	rm -f config.status \
 		config.log \
+		Makefile.am \
 		Makefile \
+		README \
 		conf/$(package).cronjob \
 		conf/$(package).conf
 
