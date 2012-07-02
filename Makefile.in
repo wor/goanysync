@@ -124,13 +124,15 @@ uninstall:
 .PHONY: maintainer-clean
 maintainer-clean: clean distclean
 	@#TODO?: aclocal.m4 missing
-	rm -f config.status \
+	rm -f \
+		config.status \
 		config.log \
 		Makefile.am \
 		Makefile \
 		README \
 		conf/$(package).cronjob \
 		conf/$(package).conf
+	rm -rf autom4te.cache
 
 .PHONY: clean
 clean:
@@ -159,6 +161,10 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/configure.ac $(distdir)/
 	cp $(srcdir)/configure $(distdir)/
 	cp $(srcdir)/Makefile.in $(distdir)/
+	cp $(srcdir)/README.in $(distdir)/
+	# install-sh is created with "automake --add-missing --copy" and needed by
+	# configure.
+	cp $(srcdir)/install-sh $(distdir)/
 	mkdir -p $(distdir)/$(SRCDIR_NAME)
 	cp $(SRCDIR)/*$(SRC_POSTFIX) $(distdir)/$(SRCDIR_NAME)/
 	mkdir -p $(distdir)/script
