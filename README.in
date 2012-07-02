@@ -1,8 +1,8 @@
-goanysync
+@PACKAGE_NAME@
 =========
 :Author:  Esa Määttä
-:Email:   wor at iki.fi
-:Version: 1.0
+:Email:   @PACKAGE_BUGREPORT@
+:Version: @PACKAGE_VERSION@
 
 goanysync is a rewrite of "anything-sync-daemon" with go programming language
 (see: https://wiki.archlinux.org/index.php/Anything-sync-daemon).
