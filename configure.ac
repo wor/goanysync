@@ -42,7 +42,7 @@ AC_PATH_PROG([GZIP_PATH], [gzip], [])
 #AC_SEARCH_LIBS([New], [goconfig], [have_goconfig=yes])
 
 AC_CONFIG_FILES([Makefile:Makefile.in
-                 README:README.in
+                 README.asciidoc:README.in
                  conf/goanysync.cronjob:conf/goanysync.cronjob.in
                  conf/goanysync.conf:conf/goanysync.conf.in])
 
