@@ -1,0 +1,34 @@
+goanysync
+=========
+:Author:  Esa Määttä
+:Email:   wor at iki.fi
+:Version: 1.0
+
+goanysync is a rewrite of "anything-sync-daemon" with go programming language
+(see: https://wiki.archlinux.org/index.php/Anything-sync-daemon).
+
+
+Run dependencies
+----------------
+
+- rsync
+
+
+Build dependencies
+------------------
+
+- autoconf
+- automake
+- go
+- gzip
+- txt2man
+
+Build and install
+-----------------
+----
+autoreconf --install
+automake --add-missing --copy
+./configure
+make
+make install
+----
