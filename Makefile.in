@@ -110,7 +110,7 @@ install: all
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(INSTALL_SERVICE)" conf/$(package).service
 	$(INSTALL) --mode=0755 --target-directory="$(DESTDIR)$(bindir)" "$(package)"
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(sysconfdir)" conf/$(package).conf
-	test "$(DOC_PREQ)x" == "docs" && \
+	test "$(DOC_PREQ)x" == "docsx" && \
 		$(INSTALL_DATA) --target-directory="$(DESTDIR)$(man1dir)" $(MANPAGES)
 
 .PHONY: uninstall
