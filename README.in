@@ -22,6 +22,7 @@ Build dependencies
 - go
 - gzip
 - txt2man
+- go-config
 
 Build and install
 -----------------
