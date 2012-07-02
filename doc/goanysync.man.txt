@@ -6,8 +6,11 @@ SYNOPSIS
 
 DESCRIPTION
     goanysync is a relatively small program to replace given directories in
-    HDD/SSD with symlinks to tmpfs and then syncing tmpfs contents back to
+    HDD/SSD with symlinks to tmpfs and to sync this tmpfs contents back to
     HDD/SSD.
+
+    Two main use cases are reducing wear on SSD and speeding up programs by moving
+    their data directories to tmpfs.
 
 COMMANDS
     initsync	Replaces sync directories with symlinks to tmpfs while syncing

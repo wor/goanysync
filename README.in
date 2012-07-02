@@ -5,8 +5,13 @@
 :Revision: @PACKAGE_VERSION@
 
 
-goanysync is a rewrite of "anything-sync-daemon" with go programming language
-(see: https://wiki.archlinux.org/index.php/Anything-sync-daemon).
+goanysync is a relatively small program to replace given directories in HDD/SSD
+with symlinks to tmpfs and to sync this tmpfs contents back to HDD/SSD. It is a
+rewrite of "anything-sync-daemon" with go programming language (see:
+https://wiki.archlinux.org/index.php/Anything-sync-daemon).
+
+Two main use cases are reducing wear on SSD and speeding up programs by moving
+their data directories to tmpfs.
 
 
 Run dependencies
