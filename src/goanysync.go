@@ -282,6 +282,9 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
             LOG.Err(lmsg)
             continue
         }   // }}}
+
+        lmsg := fmt.Sprintf("sync: synced dir '%s'.", s)
+        LOG.Debug(lmsg)
     }
     return
 }   // }}}
