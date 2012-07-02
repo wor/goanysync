@@ -124,7 +124,11 @@ uninstall:
 .PHONY: maintainer-clean
 maintainer-clean: clean distclean
 	@#TODO?: aclocal.m4 missing
-	rm -f config.status config.log Makefile conf/$(package).cronjob conf/$(package).conf
+	rm -f config.status \
+		config.log \
+		Makefile \
+		conf/$(package).cronjob \
+		conf/$(package).conf
 
 .PHONY: clean
 clean:
