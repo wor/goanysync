@@ -10,12 +10,14 @@ DESCRIPTION
     HDD/SSD.
 
 COMMANDS
-    sync	Backups given sync directories and moves their content to tmpfs
-    replacing orginal directories with symlinks to the new location in the
-    TMPFS.
+    initsync	Replaces sync directories with symlinks to tmpfs while syncing
+    orginal content there.
+    sync	Syncs content from tmpfs to the backup.
     unsync	Removes symlinking and restores orginal state of the sync directories.
     check	Checks whether sync was called without calling unsync before used
-    TMPFS was cleared (rebooting the computer can for example cause this).
+    TMPFS was cleared.
+    start	Alias for executing commands "check" and "initsync" in this order.
+    stop	Alias for executing commands "sync" and "unsync" in this order.
 
 MOTIVATION
     goanysync began as fork of anything-sync-daemon (by graysky), but is now
@@ -30,17 +32,15 @@ SETUP
     under /etc.
 
 USAGE
-    goanysync can be used directly or through wrapper script like "gsd" which is
-    included in the package. "gsd" is Arch Linux rc script so it depends on
-    the distributions initscripts. Basically wrapper script is used to run
-    "goanysync check && goanysync sync" on system startup and "goanysync sync &&
-    goanysync unsync" on shutdown or reboot.
+    goanysync can be used directly or in archlinux through included rc.d
+    script. Basically this rc.d script just runs start/stop commands on system
+    startup and shutdown.
 
     For more, see: http://github.com/wor/goanysync
     Also, see: http://wiki.archlinux.org/index.php/Anything-sync-daemon
 
 REPORTING BUGS
-    esa.maatta AT gmail
+    wor AT iki.fi
 
 AUTHORS
-    Esa Määttä (esa.maatta AT gmail)
+    Esa Määttä (wor AT iki.fi)
