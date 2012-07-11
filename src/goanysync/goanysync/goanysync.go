@@ -468,3 +468,5 @@ func runMain() int {
 func main() {
     os.Exit(runMain())
 }
+
+// vim: set sts=4 ts=4 sw=4 et foldmethod=marker:

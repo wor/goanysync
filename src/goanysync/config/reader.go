@@ -14,14 +14,11 @@ import (
 )
 
 type Config struct {
-    //comment   string
-    //separator string
-
     // option -> value
     Data map[string] *string
 }
 
-func Read(file string) (*Config, error) {
+func Read(file string) (*Config, error) { // {{{
     // Initialize Config type
     c := new(Config)
     c.Data = make(map[string]*string)
@@ -75,4 +72,6 @@ func Read(file string) (*Config, error) {
     }
 
     return c, nil
-}
+} // }}}
+
+// vim: set sts=4 ts=4 sw=4 et foldmethod=marker:

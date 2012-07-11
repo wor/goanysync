@@ -85,3 +85,5 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
     copts = &ConfigOptions{tmpfsPath, paths, syncerBin}
     return
 }
+
+// vim: set sts=4 ts=4 sw=4 et foldmethod=marker:
