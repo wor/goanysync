@@ -134,8 +134,15 @@ func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPat
 } // }}}
 
 // getLock acquires the file lock.
-func getLock(lockName string) bool { // {{{
-    return os.Mkdir(lockName, 0600) == nil
+func getLock(lockName string) (bool, error) { // {{{
+    err := os.Mkdir(lockName, 0600)
+    if err != nil {
+        if os.IsExist(err) {
+            return false, nil
+        }
+        return false, err
+    }
+    return true, nil
 } // }}}
 
 // releaseLock releases the file lock.
@@ -418,7 +425,12 @@ func runMain() int {
     }
 
     // Locking to prevent synchronous operations
-    for !getLock(processLockFile) {
+    for ok, err := getLock(processLockFile); !ok; ok, err = getLock(processLockFile) {
+        if err != nil {
+            LOG.Crit("Lock file error: " + err.Error())
+            log.Println("Lock file error:", err)
+            return 1
+        }
         // TODO: specify max wait time
         // TODO: use inotify when go provides an interface for it
         time.Sleep(time.Millisecond*100)

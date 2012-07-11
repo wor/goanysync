@@ -1,7 +1,7 @@
 package main
 
 import (
-    "github.com/wor/goconfig/config"
+    "goanysync/config"
     "strings"
     "errors"
     "fmt"
@@ -29,15 +29,19 @@ func (self *ConfigOptions) Print() {
 // given. After this it returns the read options in configOptions struct.
 func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
     var c *config.Config
-    c, err = config.Read(cfp, "# ", "=", true, true)
+    c, err = config.Read(cfp)
     if (err != nil) {
         return
     }
 
     // Read the config file
-    tmpfsPath, _ := c.String("DEFAULT", "TMPFS")
-    syncerBin, _ := c.String("DEFAULT", "RSYNC_BIN")
-    syncPaths, _ := c.String("DEFAULT", "WHATTOSYNC")
+    //tmpfsPath, _ := c.String("DEFAULT", "TMPFS")
+    //syncerBin, _ := c.String("DEFAULT", "RSYNC_BIN")
+    //syncPaths, _ := c.String("DEFAULT", "WHATTOSYNC")
+
+    tmpfsPath := *c.Data["TMPFS"]
+    syncerBin := *c.Data["RSYNC_BIN"]
+    syncPaths := *c.Data["WHATTOSYNC"]
 
     tmpfsPath = strings.TrimSpace(tmpfsPath)
     syncerBin = strings.TrimSpace(syncerBin)
@@ -45,11 +49,11 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
 
     // Check that given options are valid to some degree
     if len(tmpfsPath) < 1 {
-        err = errors.New("Empty TMPFS path defined.")
+        err = errors.New("Empty or no TMPFS path defined.")
         return
     }
     if len(syncPaths) < 1 {
-        err = errors.New("Empty WHATTOSYNC paths defined.")
+        err = errors.New("Empty or no WHATTOSYNC paths defined.")
         return
     }
     if len(syncerBin) < 1 {

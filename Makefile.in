@@ -54,7 +54,7 @@ DOCDIR      := $(srcdir)/doc
 SRC_POSTFIX := .go
 DOC_POSTFIX := .man.txt
 MAN_POSTFIX := .1.gz
-SOURCES     := $(wildcard $(SRCDIR)/*$(SRC_POSTFIX))
+SOURCES     := $(wildcard $(SRCDIR)/*/*/*$(SRC_POSTFIX))
 DOC_SOURCES := $(wildcard $(DOCDIR)/*$(DOC_POSTFIX))
 
 # Man page targets
@@ -79,7 +79,7 @@ all: $(package) $(DOC_PREQ)
 docs: $(MANPAGES)
 
 $(package): $(SOURCES)
-	$(GOC) build $(GOFLAGS) -o $(package) $^
+	GOPATH=$$(readlink -f $(srcdir)):$${GOPATH} $(GOC) build $(GOFLAGS) -o $(package) $(package)/$(package)
 
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
@@ -166,7 +166,7 @@ $(distdir): distclean FORCE
 	# configure.
 	cp $(srcdir)/install-sh $(distdir)/
 	mkdir -p $(distdir)/$(SRCDIR_NAME)
-	cp $(SRCDIR)/*$(SRC_POSTFIX) $(distdir)/$(SRCDIR_NAME)/
+	cp $(SOURCES) $(distdir)/$(SRCDIR_NAME)/
 	mkdir -p $(distdir)/script
 	cp $(srcdir)/script/$(package) $(distdir)/script/
 	mkdir -p $(distdir)/conf
@@ -182,8 +182,9 @@ distcheck: $(distdir).tar.gz
 	$(GZIP) -cd $(distdir).tar.gz | tar xvf -
 	cd $(distdir) && ./configure
 	cd $(distdir) && $(MAKE) all
-	cd $(distdir) && $(MAKE) DESTDIR=$${PWD}/_inst install
+	cd $(distdir) && $(MAKE) DESTDIR=/tmp/_temp_$(package)_inst install
 	rm -rf $(distdir)
+	rm -rf /tmp/_temp_$(package)_inst
 endif
 
 .PHONY: FORCE

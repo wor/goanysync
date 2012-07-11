@@ -4,7 +4,7 @@
 AC_PREREQ([2.69])
 AC_INIT([goanysync], [1.0], [esa.maatta@iki.fi])
 
-AC_CONFIG_SRCDIR(src/goanysync.go)
+AC_CONFIG_SRCDIR(src/goanysync/goanysync/goanysync.go)
 
 # XXX: Autoconf doesn't yet support "go" build tool,
 # which is by default only go compiler installed on Arch Linux.
