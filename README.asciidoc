@@ -28,7 +28,6 @@ Build dependencies
 - go
 - gzip
 - txt2man
-- goconfig (https://github.com/wor/goconfig)
 
 Build and install
 -----------------
