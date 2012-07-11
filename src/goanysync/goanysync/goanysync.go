@@ -10,7 +10,6 @@
 // config file syntax.
 package main
 
-
 import (
     "errors"
     "flag"
@@ -82,7 +81,7 @@ func mkdirAll(path string, perm os.FileMode, uid uint, gid uint) error { // {{{
         return err1
     }
     return nil
-} // }}}
+}   // }}}
 
 // exists checks whether given file name exists.
 func exists(fn string) bool { // {{{
@@ -90,7 +89,7 @@ func exists(fn string) bool { // {{{
         return !os.IsNotExist(err)
     }
     return true
-} // }}}
+}   // }}}
 
 // getFileUserAndGroupId returns owner user and group ids from given FileInfo.
 func getFileUserAndGroupId(fi os.FileInfo) (uid uint, gid uint, err error) { // {{{
@@ -99,7 +98,7 @@ func getFileUserAndGroupId(fi os.FileInfo) (uid uint, gid uint, err error) { // 
     }
     err = errors.New("Stat failed on: " + fi.Name())
     return
-} // }}}
+}   // }}}
 
 // isValidSource checks whether given path name "s" is valid source for sync.
 // Returns necessary information for sync/unsync function about "s".
@@ -118,13 +117,13 @@ func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { /
     }
 
     return
-} // }}}
+}   // }}}
 
 // pathNameGen generates volatile and backup path names and a regex string for
 // matching volatile path name.
 func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPath, volatilePathRe string) { // {{{
     volatilePrefix := path.Join(tmpfs, "goanysync-")
-    const backupPostfix  string = "-backup_goanysync"
+    const backupPostfix string = "-backup_goanysync"
 
     volatileBasePathRe := fmt.Sprintf("%s[0-9]+:[0-9]+", volatilePrefix)
     volatilePathRe = path.Join(volatileBasePathRe, s)
@@ -134,7 +133,7 @@ func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPat
 
     backupPath = s + backupPostfix
     return
-} // }}}
+}   // }}}
 
 // getLock acquires the file lock.
 func getLock(lockName string) (bool, error) { // {{{
@@ -146,7 +145,7 @@ func getLock(lockName string) (bool, error) { // {{{
         return false, err
     }
     return true, nil
-} // }}}
+}   // }}}
 
 // releaseLock releases the file lock.
 func releaseLock(lockName string) { // {{{
@@ -155,7 +154,7 @@ func releaseLock(lockName string) { // {{{
         LOG.Crit(lmsg)
         panic(err)
     }
-} // }}}
+}   // }}}
 
 // --------------------------------------------------------------------------
 
@@ -183,7 +182,7 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
         }
     }
     return
-} // }}}
+}   // }}}
 
 // initSync does initial preparation for syncing and if preparations already
 // done it does nothing so it should be safe to call in any case. Initial
@@ -229,7 +228,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
                 continue
             }
             // Let's do initial sync to volatile
-            cmd := exec.Command(syncerBin, "-a", "--delete", backupPath + "/", s)
+            cmd := exec.Command(syncerBin, "-a", "--delete", backupPath+"/", s)
             if err := cmd.Run(); err != nil {
                 lmsg := fmt.Sprintf("initSync error (volatile): %s\n... With command: %s\n... Skipping path: %s", err, cmd, s)
                 LOG.Err(lmsg)
@@ -239,10 +238,10 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         } else {
             lmsg := fmt.Sprintf("initSync info: sync path was already initialized: %s\n", s)
             LOG.Info(lmsg)
-        } // }}}
+        }   // }}}
     }
     return
-} // }}}
+}   // }}}
 
 // sync syncs content from tmpfs paths to backup paths. It expects that initSync
 // has been called for the syncSources.
@@ -286,7 +285,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         }
 
         // Everything was ok, so we just sync from volatile tmpfs to backup
-        cmd := exec.Command(syncerBin, "-a", "--delete", s + "/", backupPath)
+        cmd := exec.Command(syncerBin, "-a", "--delete", s+"/", backupPath)
         if err := cmd.Run(); err != nil { // {{{
             lmsg := fmt.Sprintf("sync error (backup): %s\n... With command: %s\n... Sync to backup failed for: %s", err, cmd, s)
             LOG.Err(lmsg)
@@ -339,7 +338,7 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
         }
     }
     return
-} // }}}
+}   // }}}
 
 // checkLockFileDir checks if directory which contains the lock file exists and
 // has right permissions and owner.
@@ -370,7 +369,7 @@ func checkLockFileDir(dir string) (err error) { // {{{
         return
     }
     return
-} // }}}
+}   // }}}
 
 // runMain is a main function which returns programs exit value.
 func runMain() int {
@@ -436,7 +435,7 @@ func runMain() int {
         }
         // TODO: specify max wait time
         // TODO: use inotify when go provides an interface for it
-        time.Sleep(time.Millisecond*100)
+        time.Sleep(time.Millisecond * 100)
     }
     // If os.Exit() is called remember to remove the lock file, manually.
     defer releaseLock(processLockFile)

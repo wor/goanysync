@@ -5,10 +5,10 @@
 package main
 
 import (
-    "goanysync/config"
-    "strings"
     "errors"
     "fmt"
+    "goanysync/config"
+    "strings"
 )
 
 // configOptions to be read from the config file.
@@ -34,7 +34,7 @@ func (self *ConfigOptions) Print() {
 func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
     var c *config.Config
     c, err = config.Read(cfp)
-    if (err != nil) {
+    if err != nil {
         return
     }
 

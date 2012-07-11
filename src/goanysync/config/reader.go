@@ -5,9 +5,9 @@
 package config
 
 import (
-    "io"
-    "errors"
     "bufio"
+    "errors"
+    "io"
     "os"
     "strings"
     "unicode"
@@ -15,7 +15,7 @@ import (
 
 type Config struct {
     // option -> value
-    Data map[string] *string
+    Data map[string]*string
 }
 
 func Read(file string) (*Config, error) { // {{{
@@ -34,7 +34,7 @@ func Read(file string) (*Config, error) { // {{{
     )
 
     // Read the config file and store option values to the created config
-    br := bufio.NewReader(f);
+    br := bufio.NewReader(f)
     for {
         line, err := br.ReadString('\n')
         if err != nil {
@@ -72,6 +72,6 @@ func Read(file string) (*Config, error) { // {{{
     }
 
     return c, nil
-} // }}}
+}   // }}}
 
 // vim: set sts=4 ts=4 sw=4 et foldmethod=marker:
