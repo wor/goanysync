@@ -1,3 +1,7 @@
+// Copyright (C) 2012 Esa Määttä <esa.maatta@iki.fi>
+// This file is released under the GNU GPL, version 3 or a later revision.
+// For further details see the COPYING file.
+
 package main
 
 import (

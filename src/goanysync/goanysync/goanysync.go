@@ -1,4 +1,7 @@
-// vim: set sts=4 ts=4 sw=4 et foldmethod=marker:
+// Copyright (C) 2012 Esa Määttä <esa.maatta@iki.fi>
+// This file is released under the GNU GPL, version 3 or a later revision.
+// For further details see the COPYING file.
+
 // Formated with: gofmt -w=true -tabwidth=4 -tabs=false
 
 // main package of goanysync program by Esa Määttä <esa.maatta AT iki DOT fi>.
