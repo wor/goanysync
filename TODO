@@ -21,6 +21,7 @@ MAYBE
     - Option for snapshot: backup backups to rotating .tar.xz files.
     - Make non-root user runnable, lock path to config file and permission check
       to runners uid and gid.
+    - Some way to check tmpfs size?
 
 NEVER
 -----
