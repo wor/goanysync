@@ -42,9 +42,10 @@ Build dependencies
 
 Build and install
 -----------------
-
-    $ autoreconf --install
-    $ automake --add-missing --copy
-    $ ./configure
-    $ make
-    $ make install
+----
+autoreconf --install
+automake --add-missing --copy
+./configure
+make
+make install
+----
