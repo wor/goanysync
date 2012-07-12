@@ -48,3 +48,6 @@ automake --add-missing --copy
 make
 make install
 ----
+
+Alternatively for Arch Linux an aur package is provided:
+https://aur.archlinux.org/packages.php?ID=60715
