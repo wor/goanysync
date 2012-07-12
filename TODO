@@ -1,0 +1,28 @@
+TODO
+====
+
+- If github continues to have bugs with asciidoc use rst or md.
+- Add sdist PKGBUILD
+- Fix archlinux specifity:
+   * goanysync.service is archlinux specific.
+   * Add configuration option for the lock file dir.
+
+- Parameters for sync command to select what dirs to sync from the dirs
+  specified in the config file.
+    * With this change cron can be used selectively to sync some dirs.
+
+- Fix various logging problems.
+    * "kernel" prefix.
+    * Multiline syslog messages.
+
+MAYBE
+-----
+    - Wrap logger so that log target is run-time selectable.
+    - Option for snapshot: backup backups to rotating .tar.xz files.
+    - Make non-root user runnable, lock path to config file and permission check
+      to runners uid and gid.
+
+NEVER
+-----
+    - Support for renice ionice cronjob, and maybe for general rsync.
+        * Users can always edit cronjobs themselves.
