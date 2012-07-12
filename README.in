@@ -20,9 +20,8 @@ goanysync began as fork of anything-sync-daemon (by graysky), but is now
 basically a complete rewrite and only the documentation and functionality still
 bares resemblance to asd. Rewrote was mainly inspired by permission problems
 with symlinked dirs and by the original programs bash code which, for example,
-contained this line:
-
-    [[ -d "$VOLATILE$i" ]] || mkdir -p "$VOLATILE$i" || "install -Dm755 $VOLATILE$i"
+contained this line: [[ -d "$VOLATILE$i" ]] || mkdir -p "$VOLATILE$i" ||
+"install -Dm755 $VOLATILE$i"
 
 
 Run dependencies
