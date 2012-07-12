@@ -13,6 +13,17 @@ https://wiki.archlinux.org/index.php/Anything-sync-daemon).
 Two main use cases are reducing wear on SSD and speeding up programs by moving
 their data directories to tmpfs.
 
+Motivation
+----------
+
+goanysync began as fork of anything-sync-daemon (by graysky), but is now
+basically a complete rewrite and only the documentation and functionality still
+bares resemblance to asd. Rewrote was mainly inspired by permission problems
+with symlinked dirs and by the original programs bash code which, for example,
+contained this line:
+
+    [[ -d "$VOLATILE$i" ]] || mkdir -p "$VOLATILE$i" || "install -Dm755 $VOLATILE$i"
+
 
 Run dependencies
 ----------------

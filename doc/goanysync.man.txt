@@ -22,14 +22,6 @@ COMMANDS
     start	Alias for executing commands "check" and "initsync" in this order.
     stop	Alias for executing commands "sync" and "unsync" in this order.
 
-MOTIVATION
-    goanysync began as fork of anything-sync-daemon (by graysky), but is now
-    basically a complete rewrite and only the documentation and functionality
-    still bares resemblance to asd. Rewrote was mainly inspired by permission
-    problems with symlinked dirs and by the original programs bash code which
-    contained gems like this:
-    [[ -d "$VOLATILE$i" ]] || mkdir -p "$VOLATILE$i" || "install -Dm755 $VOLATILE$i"
-
 SETUP
     All settings are defined in goanysync.conf which by default is installed
     under /etc.
