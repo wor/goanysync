@@ -2,14 +2,22 @@ TODO
 ====
 
 - If github continues to have bugs with asciidoc use rst or md.
-- Add sdist PKGBUILD
-- Fix archlinux specifity:
-   * goanysync.service is archlinux specific.
+
+- Check that really works with systemd.
+
+- Make non-root user runnable, lock path to config file and permission check
+    to runners uid and gid.
    * Add configuration option for the lock file dir.
+   * Check how lockfile dir should be created for different distributions.
+     * This should probably be package maintainers problem.
 
 - Parameters for sync command to select what dirs to sync from the dirs
   specified in the config file.
     * With this change cron can be used selectively to sync some dirs.
+
+- Fix archlinux specifity:
+   * goanysync.service is archlinux specific.
+- Add sdist PKGBUILD
 
 - Fix various logging problems.
     * "kernel" prefix.
@@ -19,8 +27,6 @@ MAYBE
 -----
     - Wrap logger so that log target is run-time selectable.
     - Option for snapshot: backup backups to rotating .tar.xz files.
-    - Make non-root user runnable, lock path to config file and permission check
-      to runners uid and gid.
     - Some way to check tmpfs size?
 
 NEVER
