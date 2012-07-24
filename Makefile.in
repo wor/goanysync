@@ -97,8 +97,9 @@ config.status: configure
 
 .PHONY: install
 install: all
-	[[ ${is_archlinux} == "yes" ]] && \
-		$(INSTALL) -D --mode=0755 script/$(package) "$(DESTDIR)$(INSTALL_RCD)/$(package)"
+	if test "${is_archlinux}x" == "yesx"; then \
+		$(INSTALL) -D --mode=0755 script/$(package) "$(DESTDIR)$(INSTALL_RCD)/$(package)"; \
+	fi
 	$(INSTALL) -D --mode=0744 conf/$(package).cronjob   "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
 	# Subsitute shell variables in the cronjob file
 	$(SED) -i -e 's|$${exec_prefix}|$(exec_prefix)|g' "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
@@ -113,8 +114,9 @@ install: all
 	$(SED) -i -e 's|$${exec_prefix}|$(exec_prefix)|g' "$(DESTDIR)$(INSTALL_SERVICE)/$(package).service"
 	$(INSTALL) --mode=0755 --target-directory="$(DESTDIR)$(bindir)" "$(package)"
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(sysconfdir)" conf/$(package).conf
-	test "$(DOC_PREQ)x" == "docsx" && \
-		$(INSTALL_DATA) --target-directory="$(DESTDIR)$(man1dir)" $(MANPAGES)
+	if test "$(DOC_PREQ)x" == "docsx"; then \
+		$(INSTALL_DATA) --target-directory="$(DESTDIR)$(man1dir)" $(MANPAGES); \
+	fi
 
 .PHONY: uninstall
 uninstall:
