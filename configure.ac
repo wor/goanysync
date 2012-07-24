@@ -38,6 +38,9 @@ fi
 AC_PATH_PROG([TXT2MAN_PATH], [txt2man], [])
 AC_PATH_PROG([GZIP_PATH], [gzip], [])
 
+# Makefile is full of bashism
+AC_PATH_PROG([BASH_PATH], [bash], [])
+
 # XXX: As AC_PROG_GO does not work, checking for go libs is not as straightforward.
 #AC_SEARCH_LIBS([New], [goconfig], [have_goconfig=yes])
 

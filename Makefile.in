@@ -5,6 +5,7 @@ DEFS = @DEFS@
 #LIBS = @LIBS@
 #GOFLAGS = @GOFLAGS@
 
+SHELL           = @BASH_PATH@
 SED             = @SED@
 TXT2MAN         = @TXT2MAN_PATH@
 GZIP            = @GZIP_PATH@
