@@ -5,8 +5,9 @@ Wants=local-fs.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/etc/rc.d/gsd start
-ExecStop=/etc/rc.d/gsd stop
+ExecStartPre=
+ExecStart=/usr/bin/goanysync start
+ExecStop=/etc/bin/goanysync stop
 
 [Install]
 WantedBy=multi-user.target
