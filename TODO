@@ -1,6 +1,9 @@
 TODO
 ====
 
+- Test that build works on ubuntu 12.04 and add ubuntu specific instructions.
+    * Is libtool package really needed?
+
 - If github continues to have bugs with asciidoc use rst or md.
 
 - Check that really works with systemd.
