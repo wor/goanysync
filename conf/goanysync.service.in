@@ -1,5 +1,5 @@
 [Unit]
-Description=Symlinks and syncs user defined dirs to RAM thus reducing HDD/SDD calls and speeding-up the system
+Description=goanysync directory symlinker and content syncer
 Wants=local-fs.target
 
 [Service]
