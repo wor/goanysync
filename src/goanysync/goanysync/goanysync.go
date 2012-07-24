@@ -27,6 +27,26 @@ import (
 // global logger
 var LOG *syslog.Writer
 
+// mkdirWithPerm creates dir if it does not exist, sets its permissions
+// and user/group
+func mkdirWithPerm(path string, perm os.FileMode, uid uint, gid uint) error { // {{{
+    err := os.Mkdir(path, perm)
+    if err != nil {
+        // Handle arguments like "foo/." by
+        // double-checking that directory doesn't exist.
+        dir, err1 := os.Lstat(path)
+        if err1 == nil && dir.IsDir() {
+            return nil
+        }
+        return err
+	}
+
+    if err1 := os.Chown(path, int(uid), int(gid)); err1 != nil {
+        return err1
+    }
+    return nil
+} // }}}
+
 // mkdirAll creates a directory named path, along with any necessary parents,
 // and returns nil, or else returns an error. The permission bits perm are used
 // for all directories that mkdirAll creates. Also given uid and gid are set. If
@@ -66,19 +86,9 @@ func mkdirAll(path string, perm os.FileMode, uid uint, gid uint) error { // {{{
     }
 
     // Now parent exists, try to create.
-    err = os.Mkdir(path, perm)
+    err = mkdirWithPerm(path, perm, uid, gid)
     if err != nil {
-        // Handle arguments like "foo/." by
-        // double-checking that directory doesn't exist.
-        dir, err1 := os.Lstat(path)
-        if err1 == nil && dir.IsDir() {
-            return nil
-        }
         return err
-    }
-    // Change user and group id
-    if err1 := os.Chown(path, int(uid), int(gid)); err1 != nil {
-        return err1
     }
     return nil
 }   // }}}
@@ -421,9 +431,11 @@ func runMain() int {
     const processLockFile string = "/run/goanysync/process.lock"
     // Check that lock files base path
     if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
-        LOG.Crit("Lock file path error: " + err.Error())
-        log.Println("Lock file path error:", err)
-        return 1
+        if err1 := mkdirWithPerm(path.Dir(processLockFile), 0755, 0, 0); err1 != nil {
+            LOG.Crit("Lock file path error: " + err1.Error())
+            log.Println("Lock file path error:", err1)
+            return 1
+        }
     }
 
     // Locking to prevent synchronous operations
