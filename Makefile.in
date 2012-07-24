@@ -133,7 +133,8 @@ maintainer-clean: clean distclean
 		Makefile \
 		README \
 		conf/$(package).cronjob \
-		conf/$(package).conf
+		conf/$(package).conf \
+		conf/$(package).service
 	rm -rf autom4te.cache
 
 .PHONY: clean
@@ -174,7 +175,7 @@ $(distdir): distclean FORCE
 	mkdir -p $(distdir)/conf
 	cp $(srcdir)/conf/tmpfiles.conf $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).cronjob.in $(distdir)/conf/
-	cp $(srcdir)/conf/$(package).service $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).service.in $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).conf.in $(distdir)/conf/
 	mkdir -p $(distdir)/doc
 	cp $(srcdir)/doc/$(package)$(DOC_POSTFIX) $(distdir)/doc/
