@@ -43,6 +43,7 @@ AC_PATH_PROG([GZIP_PATH], [gzip], [])
 
 AC_CONFIG_FILES([Makefile:Makefile.in
                  README.asciidoc:README.in
+                 conf/goanysync.service:conf/goanysync.service.in
                  conf/goanysync.cronjob:conf/goanysync.cronjob.in
                  conf/goanysync.conf:conf/goanysync.conf.in])
 

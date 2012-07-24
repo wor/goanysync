@@ -5,8 +5,8 @@ Wants=local-fs.target
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/etc/rc.d/gsd start
-ExecStop=/etc/rc.d/gsd stop
+ExecStart=@bindir@/@PACKAGE_NAME@ start
+ExecStop=@bindir@/@PACKAGE_NAME@ stop
 
 [Install]
 WantedBy=multi-user.target

@@ -108,6 +108,8 @@ install: all
 		"$(DESTDIR)$(sysconfdir)" \
 		"$(DESTDIR)$(man1dir)"
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(INSTALL_SERVICE)" conf/$(package).service
+	# Subsitute shell variables in the systemd service file
+	$(SED) -i -e 's|$${exec_prefix}|$(exec_prefix)|g' "$(DESTDIR)$(INSTALL_SERVICE)/$(package).service"
 	$(INSTALL) --mode=0755 --target-directory="$(DESTDIR)$(bindir)" "$(package)"
 	$(INSTALL_DATA) --target-directory="$(DESTDIR)$(sysconfdir)" conf/$(package).conf
 	test "$(DOC_PREQ)x" == "docsx" && \
