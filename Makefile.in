@@ -20,10 +20,12 @@ VPATH  = @srcdir@
 
 # @configure_input@
 # Package-specific substitution variables
-package = @PACKAGE_NAME@
-version = @PACKAGE_VERSION@
-tarname = @PACKAGE_TARNAME@
-distdir = $(tarname)-$(version)
+package  = @PACKAGE_NAME@
+version  = @PACKAGE_VERSION@
+tarname  = @PACKAGE_TARNAME@
+distdir  = $(tarname)-$(version)
+homepage = @homepage@
+fullname = @fullname@
 
 # Test to check if archlinux [yes,no]
 # Affects the installation of rc.d script
@@ -78,6 +80,9 @@ all: $(package) $(DOC_PREQ)
 
 .PHONY: docs
 docs: $(MANPAGES)
+
+.PHONY: deb
+deb: $(distdir)-1_i386.deb
 
 $(package): $(SOURCES)
 	GOPATH=$$(readlink -f $(srcdir)):$${GOPATH} $(GOC) build $(GOFLAGS) -o $(package) $(package)/$(package)
@@ -140,7 +145,7 @@ maintainer-clean: clean distclean
 		config.log \
 		Makefile.am \
 		Makefile \
-		README \
+		README.asciidoc \
 		conf/$(package).cronjob \
 		conf/$(package).conf \
 		conf/$(package).init.conf \
@@ -155,6 +160,8 @@ clean:
 .PHONY: distclean
 distclean:
 	rm -f $(distdir).tar.gz
+	rm -f $(package)_*.tar.gz
+	rm -f $(package)_*.{dcs,deb,changes}
 	if test -d $(distdir); then rm -rf $(distdir); fi
 
 ifneq ($(GZIP),)
@@ -190,6 +197,27 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/conf/$(package).init.conf.in $(distdir)/conf/
 	mkdir -p $(distdir)/doc
 	cp $(srcdir)/doc/$(package)$(DOC_POSTFIX) $(distdir)/doc/
+
+$(distdir)-1_i386.deb: $(distdir).tar.gz
+	$(GZIP) -cd $(distdir).tar.gz | tar xvf -
+	cd $(distdir) && DEBFULLNAME="$(fullname)" dh_make -c gpl3 -s -e @PACKAGE_BUGREPORT@ -f ../$(distdir).tar.gz
+	cd $(distdir) && \
+		$(SED) -i -e 's|^\(Section: \).*$$|\1utils|' debian/control
+	cd $(distdir) && \
+		$(SED) -i -e 's|^\(Homepage: \).*$$|\1$(homepage)|' debian/control
+	cd $(distdir) && \
+		$(SED) -i -e 's|^\(Description: \).*$$|\1Directory symlinker and content syncer|' debian/control
+	cd $(distdir) && \
+		$(SED) -i -e 's|^ <.*>$$||' debian/control # remove long description
+	cd $(distdir) && \
+		new_deps="$$(dpkg-depcheck -d ./configure 2>/dev/null \
+			| grep -A 999 '^Packages needed:$$' \
+			| tail -n+2 \
+			| sed 's/$$/,/' \
+			| xargs \
+			| sed 's/,$$//')" && \
+		$(SED) -i -e "s|^\(Build-Depends: .*\)$$|\1, $$new_deps|" debian/control # add dependencies
+	cd $(distdir) && make maintainer-clean && dpkg-buildpackage -rfakeroot
 
 .PHONY: distcheck
 distcheck: $(distdir).tar.gz

@@ -3,6 +3,8 @@
 
 AC_PREREQ([2.68])
 AC_INIT([goanysync], [1.0], [esa.maatta@iki.fi])
+AC_SUBST([homepage], [https://github.com/wor/goanysync])
+AC_SUBST([fullname], ["Esa Määttä"])
 
 AC_CONFIG_SRCDIR(src/goanysync/goanysync/goanysync.go)
 
