@@ -1,7 +1,9 @@
 TODO
 ====
+- Cleanup deb package creation in Makefile:
+    * Check package with lintian
+
 - Test that build works on ubuntu 12.04
-    * Makefile $(tarname)-$(version).deb target
     * Is libtool package really needed?
 
 - If github continues to have bugs with asciidoc use rst or md.
