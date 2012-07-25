@@ -1,0 +1,13 @@
+# goanysync - Directory symlinker and content syncer
+# Upstart /etc/init config file.
+
+description	"goanysync: Directory symlinker and content syncer"
+
+console output
+
+pre-start script
+    mkdir -p -m0755 /run/goanysync
+    exec @bindir@/@PACKAGE_NAME@ start
+end script
+
+post-stop exec @bindir@/@PACKAGE_NAME@ stop

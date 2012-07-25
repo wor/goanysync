@@ -34,7 +34,6 @@ prefix      = @prefix@
 bindir      = @bindir@
 exec_prefix = @exec_prefix@
 mandir      = @mandir@
-man1dir     = @man1dir@
 sysconfdir  = @sysconfdir@
 datarootdir = @datarootdir@
 datadir     = @datadir@
@@ -45,7 +44,8 @@ man1dir     = $(mandir)/man1/
 INSTALL_SERVICE   = $(libdir)/systemd/system
 INSTALL_RCD       = $(sysconfdir)/rc.d
 INSTALL_CRONJOB   = $(sysconfdir)/cron.hourly
-INSTALL_TMPFILESD = $(libdir)/tmpfiles.d
+INSTALL_TMPFILESD = @tmpfilesdir@
+INSTALL_INITCONF  = @initdir@
 
 
 SRCDIR_NAME := src
@@ -85,7 +85,7 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
 
-conf/$(package).conf conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in config.status
+conf/$(package).conf conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in config.status
 	./config.status $@
 
 config.status: configure
@@ -103,7 +103,13 @@ install: all
 	$(INSTALL) -D --mode=0744 conf/$(package).cronjob   "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
 	# Subsitute shell variables in the cronjob file
 	$(SED) -i -e 's|$${exec_prefix}|$(exec_prefix)|g' "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
-	$(INSTALL_DATA) -D conf/tmpfiles.conf "$(DESTDIR)$(INSTALL_TMPFILESD)/$(package).conf"
+	if test "$(INSTALL_TMPFILESD)x" != "x"; then \
+		$(INSTALL_DATA) -D conf/tmpfiles.conf "$(DESTDIR)$(INSTALL_TMPFILESD)/$(package).conf"; \
+	fi
+	if test "$(INSTALL_INITCONF)x" != "x"; then \
+		$(INSTALL_DATA) -D conf/$(package).init.conf "$(DESTDIR)$(INSTALL_INITCONF)/$(package).conf"; \
+		$(SED) -i -e 's|$${exec_prefix}|$(exec_prefix)|g' "$(DESTDIR)$(INSTALL_INITCONF)/$(package).conf"; \
+	fi
 	mkdir -p --mode=0755 \
 		"$(DESTDIR)$(INSTALL_SERVICE)" \
 		"$(DESTDIR)$(bindir)" \
@@ -137,6 +143,7 @@ maintainer-clean: clean distclean
 		README \
 		conf/$(package).cronjob \
 		conf/$(package).conf \
+		conf/$(package).init.conf \
 		conf/$(package).service
 	rm -rf autom4te.cache
 
@@ -180,6 +187,7 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/conf/$(package).cronjob.in $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).service.in $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).conf.in $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).init.conf.in $(distdir)/conf/
 	mkdir -p $(distdir)/doc
 	cp $(srcdir)/doc/$(package)$(DOC_POSTFIX) $(distdir)/doc/
 
