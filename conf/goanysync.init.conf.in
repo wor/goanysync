@@ -3,6 +3,8 @@
 
 description	"goanysync: Directory symlinker and content syncer"
 
+start on starting cron
+
 console output
 
 pre-start script
