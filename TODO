@@ -1,7 +1,7 @@
 TODO
 ====
-
-- Test that build works on ubuntu 12.04 and add ubuntu specific instructions.
+- Test that build works on ubuntu 12.04
+    * Makefile $(tarname)-$(version).deb target
     * Is libtool package really needed?
 
 - If github continues to have bugs with asciidoc use rst or md.
@@ -18,8 +18,6 @@ TODO
   specified in the config file.
     * With this change cron can be used selectively to sync some dirs.
 
-- Fix archlinux specifity:
-   * goanysync.service is archlinux specific.
 - Add sdist PKGBUILD
 
 - Fix various logging problems.
