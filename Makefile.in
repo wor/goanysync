@@ -216,7 +216,7 @@ $(distdir)-1_i386.deb: $(distdir).tar.gz
 			| sed 's/$$/,/' \
 			| xargs \
 			| sed 's/,$$//')" && \
-		$(SED) -i -e "s|^\(Build-Depends: .*\)$$|\1, $$new_deps|" debian/control # add dependencies
+		$(SED) -i -e "s|^\(Build-Depends: .*\)$$|\1, rsync, $$new_deps|" debian/control # add dependencies
 	cd $(distdir) && make maintainer-clean && dpkg-buildpackage -rfakeroot
 
 .PHONY: distcheck
