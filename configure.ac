@@ -2,9 +2,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([goanysync], [1.0], [esa.maatta@iki.fi])
-AC_SUBST([homepage], [https://github.com/wor/goanysync])
+AC_INIT([goanysync], [1.0], [esa.maatta@iki.fi], [], [https://github.com/wor/goanysync])
 AC_SUBST([fullname], ["Esa Määttä"])
+AC_SUBST([C_YEARS], [2012])
 
 AC_CONFIG_SRCDIR(src/goanysync/goanysync/goanysync.go)
 
@@ -69,6 +69,7 @@ AC_PATH_PROG([BASH_PATH], [bash], [])
 
 AC_CONFIG_FILES([Makefile:Makefile.in
                  README.asciidoc:README.in
+                 misc/license-gpl3-header:misc/license-gpl3-header.in
                  conf/goanysync.init.conf:conf/goanysync.init.conf.in
                  conf/goanysync.service:conf/goanysync.service.in
                  conf/goanysync.cronjob:conf/goanysync.cronjob.in

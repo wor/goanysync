@@ -24,7 +24,7 @@ package  = @PACKAGE_NAME@
 version  = @PACKAGE_VERSION@
 tarname  = @PACKAGE_TARNAME@
 distdir  = $(tarname)-$(version)
-homepage = @homepage@
+homepage = @PACKAGE_URL@
 fullname = @fullname@
 
 # Test to check if archlinux [yes,no]
