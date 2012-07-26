@@ -81,6 +81,7 @@ all: $(package) $(DOC_PREQ)
 .PHONY: docs
 docs: $(MANPAGES)
 
+# Create deb package for quick testing on debian based distributions
 .PHONY: deb
 deb: $(distdir)-1_i386.deb
 
@@ -90,7 +91,8 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
 
-conf/$(package).conf conf/$(package).cronjob Makefile: Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in config.status
+Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header: \
+	Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in misc/license-gpl3-header.in config.status
 	./config.status $@
 
 config.status: configure
@@ -146,6 +148,8 @@ maintainer-clean: clean distclean
 		Makefile.am \
 		Makefile \
 		README.asciidoc \
+		misc/license-gpl3-header \
+		misc/license-gpl3-header.deb \
 		conf/$(package).cronjob \
 		conf/$(package).conf \
 		conf/$(package).init.conf \
@@ -208,14 +212,17 @@ $(distdir)-1_i386.deb: $(distdir).tar.gz
 		-e 's|^\(Description: \).*$$|\1Directory symlinker and content syncer|' \
 		-e 's|^ <.*>$$||' $(distdir)/debian/control # remove long description
 	# Modify debian/copyright
-	# TODO: insert license with specified format
-	# -e '/^License: <special/r ../COPYING'
+	# First create needed license header format
+	$(SED) -e 's/^[[:space:]]\+/ /' -e 's/^$$/ ./' misc/license-gpl3-header > misc/license-gpl3-header.deb
+	$(SED) -i -e '/^License: <special/r misc/license-gpl3-header.deb' $(distdir)/debian/copyright
+	rm -f misc/license-gpl3-header.deb
 	$(SED) -i \
 		-e 's|^\(Copyright: \)<years> <.*>$$|\12012 $(fullname) <@PACKAGE_BUGREPORT@>|' \
 		-e 's|^\([[:space:]]\+\)<years> <.*>$$|\1|' \
 		-e 's|^\(Source: <\).*>$$|\1$(homepage)>|'\
 		-e 's|^\(License: \)<special.*>|\1GPL-3|' \
-		-e 's|^ #.*||' \
+		-e '/^#.*/d' \
+		-e '/^ <.\+>$$/d' \
 		$(distdir)/debian/copyright
 	new_deps="$$(dpkg-depcheck -d ./configure 2>/dev/null \
 		| grep -A 999 '^Packages needed:$$' \
