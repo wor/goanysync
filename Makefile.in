@@ -204,7 +204,7 @@ $(distdir): distclean FORCE
 $(distdir)-1_i386.deb: $(distdir).tar.gz
 	$(GZIP) -cd $(distdir).tar.gz | tar xvf -
 	cd $(distdir) && \
-		DEBFULLNAME="$(fullname)" dh_make -y -c gpl3 -s -e @PACKAGE_BUGREPORT@ -f ../$(distdir).tar.gz
+		DEBFULLNAME="$(fullname)" dh_make -c gpl3 -s -e @PACKAGE_BUGREPORT@ -f ../$(distdir).tar.gz
 	# Modify debian/control
 	$(SED) -i \
 		-e 's|^\(Section: \).*$$|\1utils|' \
