@@ -175,7 +175,6 @@ $(distdir).tar.gz: $(distdir)
 	tar chof - $(distdir) | $(GZIP) -9 -c > $@
 	rm -rf $(distdir)
 
-# TODO: here
 $(distdir): distclean FORCE
 	mkdir -p $(distdir)
 	cp $(srcdir)/configure.ac $(distdir)/
@@ -200,24 +199,39 @@ $(distdir): distclean FORCE
 
 $(distdir)-1_i386.deb: $(distdir).tar.gz
 	$(GZIP) -cd $(distdir).tar.gz | tar xvf -
-	cd $(distdir) && DEBFULLNAME="$(fullname)" dh_make -c gpl3 -s -e @PACKAGE_BUGREPORT@ -f ../$(distdir).tar.gz
 	cd $(distdir) && \
-		$(SED) -i -e 's|^\(Section: \).*$$|\1utils|' debian/control
+		DEBFULLNAME="$(fullname)" dh_make -y -c gpl3 -s -e @PACKAGE_BUGREPORT@ -f ../$(distdir).tar.gz
+	# Modify debian/control
+	$(SED) -i \
+		-e 's|^\(Section: \).*$$|\1utils|' \
+		-e 's|^\(Homepage: \).*$$|\1$(homepage)|'\
+		-e 's|^\(Description: \).*$$|\1Directory symlinker and content syncer|' \
+		-e 's|^ <.*>$$||' $(distdir)/debian/control # remove long description
+	# Modify debian/copyright
+	# TODO: insert license with specified format
+	# -e '/^License: <special/r ../COPYING'
+	$(SED) -i \
+		-e 's|^\(Copyright: \)<years> <.*>$$|\12012 $(fullname) <@PACKAGE_BUGREPORT@>|' \
+		-e 's|^\([[:space:]]\+\)<years> <.*>$$|\1|' \
+		-e 's|^\(Source: <\).*>$$|\1$(homepage)>|'\
+		-e 's|^\(License: \)<special.*>|\1GPL-3|' \
+		-e 's|^ #.*||' \
+		$(distdir)/debian/copyright
+	new_deps="$$(dpkg-depcheck -d ./configure 2>/dev/null \
+		| grep -A 999 '^Packages needed:$$' \
+		| tail -n+2 \
+		| $(SED) 's/$$/,/' \
+		| xargs \
+		| $(SED) 's/,$$//')" && \
+		$(SED) -i -e "s|^\(Build-Depends: .*\)$$|\1, rsync, $$new_deps|" $(distdir)/debian/control # add dependencies
+	# Modify debian/changelog
+	$(SED) -i \
+		-e 's|\((Closes: #\)n\+) .*$$|\11)|' \
+		$(distdir)/debian/changelog
 	cd $(distdir) && \
-		$(SED) -i -e 's|^\(Homepage: \).*$$|\1$(homepage)|' debian/control
+		if test -e "Makefile"; then make maintainer-clean; fi
 	cd $(distdir) && \
-		$(SED) -i -e 's|^\(Description: \).*$$|\1Directory symlinker and content syncer|' debian/control
-	cd $(distdir) && \
-		$(SED) -i -e 's|^ <.*>$$||' debian/control # remove long description
-	cd $(distdir) && \
-		new_deps="$$(dpkg-depcheck -d ./configure 2>/dev/null \
-			| grep -A 999 '^Packages needed:$$' \
-			| tail -n+2 \
-			| sed 's/$$/,/' \
-			| xargs \
-			| sed 's/,$$//')" && \
-		$(SED) -i -e "s|^\(Build-Depends: .*\)$$|\1, rsync, $$new_deps|" debian/control # add dependencies
-	cd $(distdir) && make maintainer-clean && dpkg-buildpackage -rfakeroot
+		dpkg-buildpackage -rfakeroot
 
 .PHONY: distcheck
 distcheck: $(distdir).tar.gz
