@@ -56,14 +56,14 @@ Build and install (source package)
     make
     make install
 
-Source package for most recent tagged version is located at
+Source package for the most recent tagged version is located at
 [goanysync-1.0.tar.gz](https://github.com/downloads/wor/goanysync/goanysync-1.0.tar.gz)
 
 
 Debian package
 --------------
 
-Also a Debian package is provided for most recent tagged version:
+Also a Debian package is provided for the most recent tagged version:
 [goanysync_1.0-1_i386.deb](https://github.com/downloads/wor/goanysync/goanysync_1.0-1_i386.deb)
 
 The package was build on Ubuntu 12.04. Recent .deb package can always be build from
