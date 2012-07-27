@@ -147,7 +147,6 @@ maintainer-clean: clean distclean
 		config.log \
 		Makefile.am \
 		Makefile \
-		README.asciidoc \
 		misc/license-gpl3-header \
 		misc/license-gpl3-header.deb \
 		conf/$(package).cronjob \
@@ -184,7 +183,7 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/configure.ac $(distdir)/
 	cp $(srcdir)/configure $(distdir)/
 	cp $(srcdir)/Makefile.in $(distdir)/
-	cp $(srcdir)/README.in $(distdir)/
+	cp $(srcdir)/README.md $(distdir)/
 	# install-sh is created with "automake --add-missing --copy" and needed by
 	# configure.
 	cp $(srcdir)/install-sh $(distdir)/
