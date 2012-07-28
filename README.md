@@ -59,6 +59,9 @@ Build and install (source package)
 Source package for the most recent tagged version is located at
 [goanysync-1.0.tar.gz](https://github.com/downloads/wor/goanysync/goanysync-1.0.tar.gz)
 
+Also for Arch Linux an aur package is provided:
+[https://aur.archlinux.org/packages.php?ID=61269](https://aur.archlinux.org/packages.php?ID=61269)
+
 
 Debian package
 --------------
@@ -73,7 +76,7 @@ goanysync git source using commands:
     make deb
 
 The automatically generated package definitely is not up to packaging standards
-but should be good enough for testing.
+but should be good enough for testing and basis for a proper package.
 
 
 Usage
