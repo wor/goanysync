@@ -164,7 +164,7 @@ clean:
 distclean:
 	rm -f $(distdir).tar.gz
 	rm -f $(package)_*.tar.gz
-	rm -f $(package)_*.{dcs,deb,changes}
+	rm -f $(package)_*.{dsc,deb,changes} # Remove deb package files
 	if test -d $(distdir); then rm -rf $(distdir); fi
 
 ifneq ($(GZIP),)
