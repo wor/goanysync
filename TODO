@@ -22,6 +22,8 @@ TODO
     * "kernel" prefix.
     * Multiline syslog messages.
 
+- Configure should handle PKGBUILD files.
+
 MAYBE
 -----
     - Wrap logger so that log target is run-time selectable.
