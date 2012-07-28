@@ -187,8 +187,10 @@ $(distdir): distclean FORCE
 	# install-sh is created with "automake --add-missing --copy" and needed by
 	# configure.
 	cp $(srcdir)/install-sh $(distdir)/
-	mkdir -p $(distdir)/$(SRCDIR_NAME)
-	cp $(SOURCES) $(distdir)/$(SRCDIR_NAME)/
+	for s in $(SOURCES); do \
+		mkdir -p $$(dirname $${s/#\./$(distdir)}); \
+		cp $$s $${s/#\./$(distdir)}; \
+		done
 	mkdir -p $(distdir)/script
 	cp $(srcdir)/script/$(package) $(distdir)/script/
 	mkdir -p $(distdir)/conf
@@ -199,6 +201,8 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/conf/$(package).init.conf.in $(distdir)/conf/
 	mkdir -p $(distdir)/doc
 	cp $(srcdir)/doc/$(package)$(DOC_POSTFIX) $(distdir)/doc/
+	mkdir -p $(distdir)/misc
+	cp $(srcdir)/misc/*.in $(distdir)/misc/
 
 $(distdir)-1_i386.deb: $(distdir).tar.gz
 	$(GZIP) -cd $(distdir).tar.gz | tar xvf -
