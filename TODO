@@ -6,8 +6,6 @@ TODO
 - Test that build works on ubuntu 12.04
     * Is libtool package really needed?
 
-- If github continues to have bugs with asciidoc use rst or md.
-
 - Check that really works with systemd.
 
 - Make non-root user runnable, lock path to config file and permission check
@@ -19,8 +17,6 @@ TODO
 - Parameters for sync command to select what dirs to sync from the dirs
   specified in the config file.
     * With this change cron can be used selectively to sync some dirs.
-
-- Add sdist PKGBUILD
 
 - Fix various logging problems.
     * "kernel" prefix.
