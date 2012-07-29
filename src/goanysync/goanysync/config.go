@@ -8,9 +8,9 @@ import (
     "errors"
     "fmt"
     "goanysync/config"
-    "strings"
-    "os/exec"
     "os"
+    "os/exec"
+    "strings"
 )
 
 // configOptions to be read from the config file.
@@ -40,80 +40,64 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
         return
     }
 
-    // Read the config file
-    //tmpfsPath, _ := c.String("DEFAULT", "TMPFS")
-    //syncerBin, _ := c.String("DEFAULT", "RSYNC_BIN")
-    //syncPaths, _ := c.String("DEFAULT", "WHATTOSYNC")
-
-    _, tmpfs_ok := c.Data["TMPFS"]
-    _, syncbin_ok := c.Data["RSYNC_BIN"]
-    _, paths_ok := c.Data["WHATTOSYNC"]
-
-    if ! tmpfs_ok {
+    // ---------------------------------------
+    // Read the config files TMPFS option
+    if _, ok := c.Data["TMPFS"]; !ok {
         err = errors.New("No TMPFS defined.")
         return
     }
-    tmpfsPath := *c.Data["TMPFS"]
+    tmpfsPath := strings.TrimSpace(*c.Data["TMPFS"])
+    //tmpfsPath = strings.TrimSpace(tmpfsPath)
 
-    var syncerBin string = "rsync"
-    if ! syncbin_ok {
-        //err = errors.New("No RSYNC_BIN defined, assuming 'rsync'")
-        syncerBin = "rsync"
-    } else {
-        syncerBin = *c.Data["RSYNC_BIN"]
-    }
-
-    if ! paths_ok {
-        err = errors.New("No WHATTOSYNC defined.")
-        return
-    }
-    syncPaths := *c.Data["WHATTOSYNC"]
-
-    tmpfsPath = strings.TrimSpace(tmpfsPath)
-    syncerBin = strings.TrimSpace(syncerBin)
-    syncPaths = strings.TrimSpace(syncPaths)
-
-    // Check that given options are valid to some degree
     if len(tmpfsPath) < 1 {
         err = errors.New("Empty TMPFS path defined.")
         return
     }
-    if len(syncPaths) < 1 {
-        err = errors.New("Empty WHATTOSYNC paths defined.")
-        return
-    }
-    // check if binary is inside path
-    sync_path, oerr := exec.LookPath(syncerBin)
-    if oerr != nil {
-        fmsg := fmt.Sprintf("Could not find the sync-binary. (%s) - %s", syncerBin, oerr)
-        err = errors.New(fmsg)
-        return
-    }
-    // this only checks if _anyone_ can execute syncerBin -> TODO
-    file_stat, oerr := os.Stat(sync_path)
-    if oerr != nil {
-        fmsg := fmt.Sprintf("Could not execute stat() on sync-binary. (%s) - %s", syncerBin, oerr)
-        err = errors.New(fmsg)
-        return
-    }
-    syncerBin = sync_path
-    bin_perms := os.FileMode.Perm(file_stat.Mode())
-    if bin_perms & 0111 == 0 {
-        fmsg := fmt.Sprintf("The sync-binary is not executable. (%s)", syncerBin)
-        err = errors.New(fmsg)
-        return
-    }
+
     // this again only checks if _anyone_ can write to tmpfsPath -> TODO
-    tmpfs_stat, oerr := os.Stat(tmpfsPath)
+    tmpfsStat, oerr := os.Stat(tmpfsPath)
     if oerr != nil {
         fmsg := fmt.Sprintf("Could not execute stat() on tmpfsPath. (%s) - %s", tmpfsPath, oerr)
         err = errors.New(fmsg)
         return
     }
-    tmpfs_perms := os.FileMode.Perm(tmpfs_stat.Mode())
-    if tmpfs_perms & 0222 == 0 {
+    if tmpfsPerm := os.FileMode.Perm(tmpfsStat.Mode()); tmpfsPerm&0222 == 0 {
         fmsg := fmt.Sprintf("The tmpfsPath is not writable. (%s)", tmpfsPath)
         err = errors.New(fmsg)
+        return
+    }
+
+    // ---------------------------------------
+    // Read the config files RSYNC_BIN option.
+    // If no RSYNC_BIN option is defined in the config file default to "rsync".
+    var syncerBin string = "rsync"
+    if _, ok := c.Data["RSYNC_BIN"]; ok {
+        syncerBin = *c.Data["RSYNC_BIN"]
+    }
+    syncerBin = strings.TrimSpace(syncerBin)
+    // If RSYNC_BIN option is defined but with empty value then issue error.
+    if len(syncerBin) < 1 {
+        err = errors.New("Empty RSYNC_BIN path defined.")
+        return
+    }
+
+    // Check that syncerBin is executable and found from PATH if it's relative.
+    if _, oerr := exec.LookPath(syncerBin); oerr != nil {
+        fmsg := fmt.Sprintf("Could not find the sync-binary. (%s) - %s", syncerBin, oerr)
+        err = errors.New(fmsg)
+        return
+    }
+
+    // ---------------------------------------
+    // Read the config files WHATTOSYNC option
+    if _, ok := c.Data["WHATTOSYNC"]; !ok {
+        err = errors.New("No WHATTOSYNC defined.")
+        return
+    }
+    syncPaths := strings.TrimSpace(*c.Data["WHATTOSYNC"])
+
+    if len(syncPaths) < 1 {
+        err = errors.New("Empty WHATTOSYNC paths defined.")
         return
     }
 
