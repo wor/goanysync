@@ -219,8 +219,14 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         // Second check if we need to create initial backup and initial sync to
         // volatile
         if target, err := os.Readlink(s); err != nil || target != volatilePath { // {{{
-            // TODO: don't ignore errors
-            os.Rename(s, backupPath)
+            // trying to rename the target path
+            err2 := os.Rename(s, backupPath)
+            if err2 != nil {
+				lmsg := fmt.Sprintf("could not rename target path: %s\n... Skipping path: %s", err2, s)
+				LOG.Err(lmsg)
+				continue
+            }
+            // create symlink from original path to volatile path
             if linkError := os.Symlink(volatilePath, s); linkError != nil {
                 lmsg := fmt.Sprintf("initSync error (symlink): %s\n... Skipping path: %s", err, s)
                 LOG.Err(lmsg)
