@@ -91,8 +91,8 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
 
-Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header: \
-	Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in misc/license-gpl3-header.in config.status
+Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist: \
+	Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in misc/license-gpl3-header.in archlinux_pkg/PKGBUILD_dist.in config.status
 	./config.status $@
 
 config.status: configure
@@ -149,6 +149,7 @@ maintainer-clean: clean distclean
 		Makefile \
 		misc/license-gpl3-header \
 		misc/license-gpl3-header.deb \
+		archlinux_pkg/PKGBUILD_dist \
 		conf/$(package).cronjob \
 		conf/$(package).conf \
 		conf/$(package).init.conf \
@@ -191,6 +192,8 @@ $(distdir): distclean FORCE
 		mkdir -p $$(dirname $${s/#\./$(distdir)}); \
 		cp $$s $${s/#\./$(distdir)}; \
 		done
+	mkdir -p $(distdir)/archlinux_pkg
+	cp $(srcdir)/archlinux_pkg/PKGBUILD_dist.in $(distdir)/archlinux_pkg/
 	mkdir -p $(distdir)/script
 	cp $(srcdir)/script/$(package) $(distdir)/script/
 	mkdir -p $(distdir)/conf
