@@ -20,9 +20,9 @@ import (
     "os/exec"
     "path"
     "regexp"
+    "strings"
     "syscall"
     "time"
-    "strings"
 )
 
 // global logger
@@ -31,27 +31,26 @@ var LOG *syslog.Writer
 // should I be chatty?
 var VERBOSE bool
 
-
-var ERR = func (msg string) (error, string) {return LOG.Err(msg), "ERR" }
-var INFO = func (msg string) (error, string) {return LOG.Info(msg), "INFO" }
-var CRIT = func (msg string) (error, string) {return LOG.Crit(msg), "CRIT" }
-var DEBUG = func (msg string) (error, string) {return LOG.Debug(msg), "DEBUG" }
+var ERR = func(msg string) (error, string) { return LOG.Err(msg), "ERR" }
+var INFO = func(msg string) (error, string) { return LOG.Info(msg), "INFO" }
+var CRIT = func(msg string) (error, string) { return LOG.Crit(msg), "CRIT" }
+var DEBUG = func(msg string) (error, string) { return LOG.Debug(msg), "DEBUG" }
 
 // The Logger() takes one of the previously defined logging methods and
 // wraps the msg directly to the regular logger mechanism, if VERBOSE is not set.
 // Otherwise Logger() prints the messages to the stdout in order to be verbose
-func Logger(method func(msg string) (error, string) , wrap_msg string) error {
-	ret, funcname := method(wrap_msg)
-	if VERBOSE {
-		lines := strings.Split(strings.TrimSpace(wrap_msg), "\n")
-		i := 0
-        for i<len(lines) {
+func Logger(method func(msg string) (error, string), wrap_msg string) error {
+    ret, funcname := method(wrap_msg)
+    if VERBOSE {
+        lines := strings.Split(strings.TrimSpace(wrap_msg), "\n")
+        i := 0
+        for i < len(lines) {
             out := fmt.Sprintf("%7s %s", "["+funcname+"]", strings.TrimSpace(lines[i]))
-			fmt.Println(out)
+            fmt.Println(out)
             i++
         }
-	}
-	return ret
+    }
+    return ret
 }
 
 // mkdirAll creates a directory named path, along with any necessary parents,
@@ -218,12 +217,12 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
 // syncSources with symlinks to directories under given tmpfs path. 2. Creation
 // of a backup directory for every syncSource path.
 func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
-	Logger(DEBUG, "Starting initial sync run...")
+    Logger(DEBUG, "Starting initial sync run...")
     for _, s := range *syncSources {
         var (
-            fi        os.FileInfo
-            uid, gid  uint
-            err       error
+            fi       os.FileInfo
+            uid, gid uint
+            err      error
         )
 
         // Create initial tmpfs base dir
@@ -458,7 +457,7 @@ func runMain() int {
     // Read config file
     copts, err := ReadConfigFile(*configFilePath)
     if err != nil {
-        Logger(CRIT, "Config file error: " + err.Error())
+        Logger(CRIT, "Config file error: "+err.Error())
         return 1
     }
 
@@ -473,14 +472,14 @@ func runMain() int {
     const processLockFile string = "/run/goanysync/process.lock"
     // Check that lock files base path
     if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
-        Logger(CRIT, "Lock file path error: " + err.Error())
+        Logger(CRIT, "Lock file path error: "+err.Error())
         return 1
     }
 
     // Locking to prevent synchronous operations
     for ok, err := getLock(processLockFile); !ok; ok, err = getLock(processLockFile) {
         if err != nil {
-            Logger(CRIT, "Lock file error: " + err.Error())
+            Logger(CRIT, "Lock file error: "+err.Error())
             return 1
         }
         // TODO: specify max wait time

@@ -30,7 +30,7 @@ func (self *ConfigOptions) Print() {
     for i, v := range self.syncPaths {
         fmt.Printf("%s%s %d: %s\n", indent, indent, i, v)
     }
-	fmt.Println("")
+    fmt.Println("")
 }
 
 // readConfigFile reads config file and checks that necessary information was
