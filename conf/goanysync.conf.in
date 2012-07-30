@@ -11,4 +11,9 @@ RSYNC_BIN = @RSYNC_PATH@
 # Define source directories in the WHATTOSYNC comma-separated list. These
 # directories content will be moved under TMPFS path and the directory itself
 # replaced by symlink to the aforementioned path.
-WHATTOSYNC = /var/log, /srv/http, /home/user/.mozilla/firefox
+#
+# An example could be:
+#
+# WHATTOSYNC = /var/log, /srv/http, /home/myuser/.mozilla/firefox /home/myuser/.cache
+
+WHATTOSYNC =
