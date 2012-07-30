@@ -1,5 +1,7 @@
 TODO
 ====
+- TMPFS paths parent dir must exists at the moment.
+
 - Cleanup deb package creation in Makefile:
     * Check package with lintian
 
