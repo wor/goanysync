@@ -10,6 +10,7 @@ import (
     "goanysync/config"
     "os"
     "os/exec"
+    "path"
     "strings"
 )
 
@@ -47,14 +48,35 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
         return
     }
     tmpfsPath := strings.TrimSpace(*c.Data["TMPFS"])
-    //tmpfsPath = strings.TrimSpace(tmpfsPath)
 
     if len(tmpfsPath) < 1 {
         err = errors.New("Empty TMPFS path defined.")
         return
     }
 
-    // this again only checks if _anyone_ can write to tmpfsPath -> TODO
+    if !path.IsAbs(tmpfsPath) {
+        err = errors.New("TMPFS path must be absolute.")
+        return
+    }
+
+    // TMPFS dir does not have to exists as init creates it, but all it's parent
+    // dirs must.
+    // Check that every TMPFS parent dir has excutable bit set for all users.
+    for p := path.Dir(tmpfsPath); p != string(os.PathSeparator); p = path.Dir(p) {
+        d, serr := os.Stat(p)
+        if serr != nil {
+            fmsg := fmt.Sprintf("The TMPFS parent path '%s' access error: %s", p, serr)
+            err = errors.New(fmsg)
+            return
+        }
+        if m := d.Mode(); m&0111 != 0111 {
+            fmsg := fmt.Sprintf("The TMPFS parent path '%s' did not have executable bit set for all users.", p)
+            err = errors.New(fmsg)
+            return
+        }
+    }
+
+    // Check that tmpfsPaths all parent directories have mod o+x
     tmpfsStat, oerr := os.Stat(tmpfsPath)
     if oerr == nil {
         if tmpfsPerm := os.FileMode.Perm(tmpfsStat.Mode()); tmpfsPerm&0222 == 0 {
