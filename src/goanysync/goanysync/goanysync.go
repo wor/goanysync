@@ -197,6 +197,21 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
             err      error
         )
 
+        // Create initial tmpfs base dir right permissions
+        if err := os.Mkdir(tmpfs, 0777); err != nil {
+            if os.IsExist(err) {
+                if err := os.Chmod(tmpfs, 0777); err != nil {
+                    lmsg := fmt.Sprintf("initSync error: Changing permissions of tmpfs dir '%s' failed...: %s", tmpfs, err)
+                    LOG.Err(lmsg)
+                    return
+                }
+            } else {
+                lmsg := fmt.Sprintf("initSync error: Creation of tmpfs dir '%s' failed...: %s", tmpfs, err)
+                LOG.Err(lmsg)
+                return
+            }
+        }
+
         if fi, uid, gid, err = isValidSource(s); err != nil {
             lmsg := fmt.Sprintf("initSync error: %s\n... Skipping path: %s", err, s)
             LOG.Err(lmsg)

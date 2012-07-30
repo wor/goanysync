@@ -56,15 +56,12 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
 
     // this again only checks if _anyone_ can write to tmpfsPath -> TODO
     tmpfsStat, oerr := os.Stat(tmpfsPath)
-    if oerr != nil {
-        fmsg := fmt.Sprintf("Could not execute stat() on tmpfsPath. (%s) - %s", tmpfsPath, oerr)
-        err = errors.New(fmsg)
-        return
-    }
-    if tmpfsPerm := os.FileMode.Perm(tmpfsStat.Mode()); tmpfsPerm&0222 == 0 {
-        fmsg := fmt.Sprintf("The tmpfsPath is not writable. (%s)", tmpfsPath)
-        err = errors.New(fmsg)
-        return
+    if oerr == nil {
+        if tmpfsPerm := os.FileMode.Perm(tmpfsStat.Mode()); tmpfsPerm&0222 == 0 {
+            fmsg := fmt.Sprintf("The tmpfsPath is not writable. (%s)", tmpfsPath)
+            err = errors.New(fmsg)
+            return
+        }
     }
 
     // ---------------------------------------
