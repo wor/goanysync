@@ -76,16 +76,6 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
         }
     }
 
-    // Check that tmpfsPaths all parent directories have mod o+x
-    tmpfsStat, oerr := os.Stat(tmpfsPath)
-    if oerr == nil {
-        if tmpfsPerm := os.FileMode.Perm(tmpfsStat.Mode()); tmpfsPerm&0222 == 0 {
-            fmsg := fmt.Sprintf("The tmpfsPath is not writable. (%s)", tmpfsPath)
-            err = errors.New(fmsg)
-            return
-        }
-    }
-
     // ---------------------------------------
     // Read the config files RSYNC_BIN option.
     // If no RSYNC_BIN option is defined in the config file default to "rsync".
