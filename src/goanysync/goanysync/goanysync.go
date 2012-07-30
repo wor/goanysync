@@ -207,7 +207,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         // Change permissions of the tmpfs base dir. Base tmpfs dir should be
         // writable/readable by anyone but not removable.
         // (Mkdir uses umask so we need to chmod.)
-        if err := os.Chmod(tmpfs, 0777 | os.ModeSticky | os.ModeDir); err != nil {
+        if err := os.Chmod(tmpfs, 0777|os.ModeSticky|os.ModeDir); err != nil {
             lmsg := fmt.Sprintf("initSync error: Changing permissions of tmpfs dir '%s' failed...: %s", tmpfs, err)
             LOG.Err(lmsg)
             return
@@ -236,11 +236,10 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         // volatile
         if target, err := os.Readlink(s); err != nil || target != volatilePath { // {{{
             // trying to rename the target path
-            err2 := os.Rename(s, backupPath)
-            if err2 != nil {
-				lmsg := fmt.Sprintf("could not rename target path: %s\n... Skipping path: %s", err2, s)
-				LOG.Err(lmsg)
-				continue
+            if err := os.Rename(s, backupPath); err != nil {
+                lmsg := fmt.Sprintf("initSync error: could not rename target path: %s\n... Skipping path: %s", err, s)
+                LOG.Err(lmsg)
+                continue
             }
             // create symlink from original path to volatile path
             if linkError := os.Symlink(volatilePath, s); linkError != nil {
