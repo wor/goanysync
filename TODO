@@ -24,8 +24,6 @@ TODO
     * "kernel" prefix.
     * Multiline syslog messages.
 
-- Configure should handle PKGBUILD files.
-
 - Cache conf file values when "start" is called, so that conf file can be
   modified and it won't mess "stop". New conf file values would be used when
   next "start" is called.

@@ -68,6 +68,7 @@ AC_PATH_PROG([BASH_PATH], [bash], [])
 
 
 AC_CONFIG_FILES([Makefile:Makefile.in
+                 archlinux_pkg/PKGBUILD_dist:archlinux_pkg/PKGBUILD_dist.in
                  misc/license-gpl3-header:misc/license-gpl3-header.in
                  conf/goanysync.init.conf:conf/goanysync.init.conf.in
                  conf/goanysync.service:conf/goanysync.service.in
