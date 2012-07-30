@@ -431,6 +431,32 @@ func runMain() int {
         copts.Print()
     }
 
+    //var fm1 os.FileMode = 1 << (32-1-2)
+    //fmt.Printf("filemode: %o\n", fm1)
+    //fmt.Printf("filemode s: %o\n", os.ModeSticky)
+    //var fm2 os.FileMode = 0777
+    //fmt.Printf("filemode: %b\n", 0777)
+    //fmt.Printf("filemode: %o\n", fm2)
+    //fmt.Printf("filemode: %b\n", fm1 | fm2)
+
+    //var fm os.FileMode = 0777 | os.ModeSticky | os.ModeDir
+    //fmt.Println("----")
+    //fmt.Printf("filemode s: %b\n", os.ModeSticky)
+    //fmt.Printf("filemode d: %b\n", os.ModeDir)
+    //fmt.Printf("filemode a: %b\n", 0777)
+    //fmt.Printf("filemode  : %32b\n", 0777 | os.ModeSticky | os.ModeDir)
+    //fmt.Printf("filemode  : %32b\n", 0777 | os.ModeDir)
+    //fmt.Printf("filemode f: %32b\n", fm)
+    //fmt.Printf("filemode f: %o\n", fm)
+    //fmt.Printf("filemode f: %x\n", fm)
+    //if err := os.Mkdir("/tmp/joo", fm); err != nil {
+    //    log.Println(err)
+    //    if err := os.Chmod("/tmp/joo", fm); err != nil {
+    //        log.Println(err)
+    //    }
+    //}
+    return 1
+
     // For now do not allow synchronous calls at all.
     // "/run/goanysync" is path is configured in tmpfiles.d and should be only
     // root writable.
