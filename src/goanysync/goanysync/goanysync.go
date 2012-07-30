@@ -22,10 +22,37 @@ import (
     "regexp"
     "syscall"
     "time"
+    "strings"
 )
 
 // global logger
 var LOG *syslog.Writer
+
+// should I be chatty?
+var VERBOSE bool
+
+
+var ERR = func (msg string) (error, string) {return LOG.Err(msg), "ERR" }
+var INFO = func (msg string) (error, string) {return LOG.Info(msg), "INFO" }
+var CRIT = func (msg string) (error, string) {return LOG.Crit(msg), "CRIT" }
+var DEBUG = func (msg string) (error, string) {return LOG.Debug(msg), "DEBUG" }
+
+// The Logger() takes one of the previously defined logging methods and
+// wraps the msg directly to the regular logger mechanism, if VERBOSE is not set.
+// Otherwise Logger() prints the messages to the stdout in order to be verbose
+func Logger(method func(msg string) (error, string) , wrap_msg string) error {
+	ret, funcname := method(wrap_msg)
+	if VERBOSE {
+		lines := strings.Split(strings.TrimSpace(wrap_msg), "\n")
+		i := 0
+        for i<len(lines) {
+            out := fmt.Sprintf("%7s %s", "["+funcname+"]", strings.TrimSpace(lines[i]))
+			fmt.Println(out)
+            i++
+        }
+	}
+	return ret
+}
 
 // mkdirAll creates a directory named path, along with any necessary parents,
 // and returns nil, or else returns an error. The permission bits perm are used
@@ -161,6 +188,7 @@ func releaseLock(lockName string) { // {{{
 // checkAndFix checks if any sync sources where synced but not finally unsynced.
 // Restores such sources from backup path to original state.
 func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
+    Logger(DEBUG, "Checking for inconsistencies...")
     for _, s := range *syncSources {
         _, backupPath, volatilePathRe := pathNameGen(s, tmpfs, 0, 0)
 
@@ -190,11 +218,12 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
 // syncSources with symlinks to directories under given tmpfs path. 2. Creation
 // of a backup directory for every syncSource path.
 func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
+	Logger(DEBUG, "Starting initial sync run...")
     for _, s := range *syncSources {
         var (
-            fi       os.FileInfo
-            uid, gid uint
-            err      error
+            fi        os.FileInfo
+            uid, gid  uint
+            err       error
         )
 
         // Create initial tmpfs base dir right permissions
@@ -214,7 +243,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
 
         if fi, uid, gid, err = isValidSource(s); err != nil {
             lmsg := fmt.Sprintf("initSync error: %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }
 
@@ -227,18 +256,24 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         // permissions.
         if err := mkdirAll(volatilePath, fi.Mode(), uid, gid); err != nil { // {{{
             lmsg := fmt.Sprintf("initSync error (volatile path creation): %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }   // }}}
 
         // Second check if we need to create initial backup and initial sync to
         // volatile
         if target, err := os.Readlink(s); err != nil || target != volatilePath { // {{{
-            // TODO: don't ignore errors
-            os.Rename(s, backupPath)
+            // trying to rename the target path
+            err2 := os.Rename(s, backupPath)
+            if err2 != nil {
+                lmsg := fmt.Sprintf("could not rename target path: %s\n... Skipping path: %s", err2, s)
+                Logger(ERR, lmsg)
+                continue
+            }
+            // create symlink from original path to volatile path
             if linkError := os.Symlink(volatilePath, s); linkError != nil {
                 lmsg := fmt.Sprintf("initSync error (symlink): %s\n... Skipping path: %s", err, s)
-                LOG.Err(lmsg)
+                Logger(ERR, lmsg)
                 os.Rename(backupPath, s)
                 continue
             }
@@ -246,13 +281,13 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
             cmd := exec.Command(syncerBin, "-a", "--delete", backupPath+"/", s)
             if err := cmd.Run(); err != nil {
                 lmsg := fmt.Sprintf("initSync error (volatile): %s\n... With command: %s\n... Skipping path: %s", err, cmd, s)
-                LOG.Err(lmsg)
+                Logger(ERR, lmsg)
                 os.Rename(backupPath, s)
             }
             continue
         } else {
             lmsg := fmt.Sprintf("initSync info: sync path was already initialized: %s\n", s)
-            LOG.Info(lmsg)
+            Logger(DEBUG, lmsg)
         }   // }}}
     }
     return
@@ -261,6 +296,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
 // sync syncs content from tmpfs paths to backup paths. It expects that initSync
 // has been called for the syncSources.
 func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
+    Logger(DEBUG, "Starting sync...")
     for _, s := range *syncSources {
         var (
             uid, gid uint
@@ -269,7 +305,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
 
         if _, uid, gid, err = isValidSource(s); err != nil {
             lmsg := fmt.Sprintf("sync error: %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }
 
@@ -280,14 +316,14 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         if !exists(volatilePath) {
             // syncInit failed or not called for the sync path
             lmsg := fmt.Sprintf("sync error (volatile path did not exist): %s\n... Skipping path: %s", volatilePath, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }
 
         // Target must be a symlink to the volatile path
         if target, err := os.Readlink(s); err != nil || target != volatilePath { // {{{
             lmsg := fmt.Sprintf("sync error (volatile path was not linked): %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }   // }}}
 
@@ -295,7 +331,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         if !exists(backupPath) {
             // syncInit failed or not called for the sync path
             lmsg := fmt.Sprintf("sync error (backup path did not exist): %s\n... Skipping path: %s", backupPath, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }
 
@@ -303,18 +339,19 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         cmd := exec.Command(syncerBin, "-a", "--delete", s+"/", backupPath)
         if err := cmd.Run(); err != nil { // {{{
             lmsg := fmt.Sprintf("sync error (backup): %s\n... With command: %s\n... Sync to backup failed for: %s", err, cmd, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }   // }}}
 
         lmsg := fmt.Sprintf("sync: synced dir '%s'.", s)
-        LOG.Debug(lmsg)
+        Logger(DEBUG, lmsg)
     }
     return
 }   // }}}
 
 // unsync removes symbolic linkin to tmpfs and restores original from backup.
 func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
+    Logger(DEBUG, "Starting unsync...")
     for _, s := range *syncSources {
         var (
             uid, gid uint
@@ -322,7 +359,7 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
         )
         if _, uid, gid, err = isValidSource(s); err != nil {
             lmsg := fmt.Sprintf("unsync error: %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }
         volatilePath, backupPath, _ := pathNameGen(s, tmpfs, uid, gid)
@@ -330,14 +367,14 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
         // Check that backup path exists and is a directory
         if fi, err := os.Stat(backupPath); err != nil || !fi.IsDir() { // {{{
             lmsg := fmt.Sprintf("unsync error (backup): %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }   // }}}
 
         // Check that "s" was symlink to the volatile path
         if target, err := os.Readlink(s); err != nil || target != volatilePath { // {{{
             lmsg := fmt.Sprintf("unsync error (volatile): %s\n... Skipping path: %s", err, s)
-            LOG.Err(lmsg)
+            Logger(ERR, lmsg)
             continue
         }   // }}}
 
@@ -421,13 +458,13 @@ func runMain() int {
     // Read config file
     copts, err := ReadConfigFile(*configFilePath)
     if err != nil {
-        LOG.Crit("Config file error: " + err.Error())
-        log.Println("Config file error:", err)
+        Logger(CRIT, "Config file error: " + err.Error())
         return 1
     }
 
     if *verbose {
         copts.Print()
+        VERBOSE = true
     }
 
     // For now do not allow synchronous calls at all.
@@ -436,16 +473,14 @@ func runMain() int {
     const processLockFile string = "/run/goanysync/process.lock"
     // Check that lock files base path
     if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
-        LOG.Crit("Lock file path error: " + err.Error())
-        log.Println("Lock file path error:", err)
+        Logger(CRIT, "Lock file path error: " + err.Error())
         return 1
     }
 
     // Locking to prevent synchronous operations
     for ok, err := getLock(processLockFile); !ok; ok, err = getLock(processLockFile) {
         if err != nil {
-            LOG.Crit("Lock file error: " + err.Error())
-            log.Println("Lock file error:", err)
+            Logger(CRIT, "Lock file error: " + err.Error())
             return 1
         }
         // TODO: specify max wait time
