@@ -189,7 +189,7 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
 // preparation incorporates following acts: 1. Replacement of given paths in
 // syncSources with symlinks to directories under given tmpfs path. 2. Creation
 // of a backup directory for every syncSource path.
-func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
+func initSync(tmpfs string, syncSources *[]string, syncerBin string) (error) { // {{{
     for _, s := range *syncSources {
         var (
             fi       os.FileInfo
@@ -199,27 +199,21 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
 
         // Create initial tmpfs base dir
         if err := os.Mkdir(tmpfs, 0711); err != nil && !os.IsExist(err) {
-            lmsg := fmt.Sprintf("initSync error: Creation of tmpfs dir '%s' failed...: %s", tmpfs, err)
-            LOG.Err(lmsg)
-            // TODO: return err, so this can posibbly fail
-            return
+            emsg := fmt.Sprintf("initSync error: Creation of tmpfs dir '%s' failed...: %s", tmpfs, err)
+            return errors.New(emsg)
         }
 
         // Base tmpfs dir needs at least 0111 (+x) for every user
         // (Mkdir uses umask so we need to chmod.)
         d, serr := os.Stat(tmpfs);
         if serr != nil {
-            lmsg := fmt.Sprintf("initSync error: tmpfs path '%s' access error: %s", tmpfs, serr)
-            LOG.Err(lmsg)
-            // TODO: return err, so this can posibbly fail
-            return
+            emsg := fmt.Sprintf("initSync error: tmpfs path '%s' access error: %s", tmpfs, serr)
+            return errors.New(emsg)
         }
         if m := d.Mode(); m&0111 != 0111 {
             if err := os.Chmod(tmpfs, m|0111); err != nil {
-                lmsg := fmt.Sprintf("initSync error: Changing permissions of tmpfs dir '%s' failed...: %s", tmpfs, err)
-                LOG.Err(lmsg)
-                // TODO: return err, so this can posibbly fail
-                return
+                emsg := fmt.Sprintf("initSync error: Changing permissions of tmpfs dir '%s' failed...: %s", tmpfs, err)
+                return errors.New(emsg)
             }
             lmsg := fmt.Sprintf("initSync info: Changed '%s' permissions from '%s' -> '%s'.", tmpfs, m, m|0111)
             LOG.Info(lmsg)
@@ -273,7 +267,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
             LOG.Info(lmsg)
         }   // }}}
     }
-    return
+    return nil
 }   // }}}
 
 // sync syncs content from tmpfs paths to backup paths. It expects that initSync
@@ -477,14 +471,22 @@ func runMain() int {
     case "check":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
     case "initsync":
-        initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
+        if err := initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin); err != nil {
+            log.Println(err.Error())
+            LOG.Err(err.Error())
+            return 1
+        }
     case "sync":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
     case "unsync":
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
     case "start":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
-        initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
+        if err := initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin); err != nil {
+            log.Println(err.Error())
+            LOG.Err(err.Error())
+            return 1
+        }
     case "stop":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
