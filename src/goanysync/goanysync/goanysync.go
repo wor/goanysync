@@ -198,19 +198,31 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
         )
 
         // Create initial tmpfs base dir
-        if err := os.Mkdir(tmpfs, 0777); err != nil && !os.IsExist(err) {
+        if err := os.Mkdir(tmpfs, 0711); err != nil && !os.IsExist(err) {
             lmsg := fmt.Sprintf("initSync error: Creation of tmpfs dir '%s' failed...: %s", tmpfs, err)
             LOG.Err(lmsg)
+            // TODO: return err, so this can posibbly fail
             return
         }
 
-        // Change permissions of the tmpfs base dir. Base tmpfs dir should be
-        // writable/readable by anyone but not removable.
+        // Base tmpfs dir needs at least 0111 (+x) for every user
         // (Mkdir uses umask so we need to chmod.)
-        if err := os.Chmod(tmpfs, 0777|os.ModeSticky|os.ModeDir); err != nil {
-            lmsg := fmt.Sprintf("initSync error: Changing permissions of tmpfs dir '%s' failed...: %s", tmpfs, err)
+        d, serr := os.Stat(tmpfs);
+        if serr != nil {
+            lmsg := fmt.Sprintf("initSync error: tmpfs path '%s' access error: %s", tmpfs, serr)
             LOG.Err(lmsg)
+            // TODO: return err, so this can posibbly fail
             return
+        }
+        if m := d.Mode(); m&0111 != 0111 {
+            if err := os.Chmod(tmpfs, m|0111); err != nil {
+                lmsg := fmt.Sprintf("initSync error: Changing permissions of tmpfs dir '%s' failed...: %s", tmpfs, err)
+                LOG.Err(lmsg)
+                // TODO: return err, so this can posibbly fail
+                return
+            }
+            lmsg := fmt.Sprintf("initSync info: Changed '%s' permissions from '%s' -> '%s'.", tmpfs, m, m|0111)
+            LOG.Info(lmsg)
         }
 
         if fi, uid, gid, err = isValidSource(s); err != nil {
