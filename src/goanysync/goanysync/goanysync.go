@@ -14,7 +14,6 @@ import (
     "errors"
     "flag"
     "fmt"
-    "log"
     "log/syslog"
     "os"
     "os/exec"
@@ -151,8 +150,8 @@ func getLock(lockName string) (bool, error) { // {{{
 // releaseLock releases the file lock.
 func releaseLock(lockName string) { // {{{
     if err := os.Remove(lockName); err != nil {
-        lmsg := fmt.Sprintf("releaseLock error: %s\n... This should not happen, panicing..", err)
-        LOG.Crit(lmsg)
+        lmsg := fmt.Sprintf("releaseLock: %s", err)
+        LOG.Emerg(lmsg)
         panic(err)
     }
 }   // }}}
@@ -408,18 +407,13 @@ func runMain() int {
     var err error
     LOG, err = wl.New("goanysync", syslog.LOG_DEBUG)
     if err != nil {
-        log.Println("Error: Logger initialization failed with error:", err)
+        fmt.Fprintf(os.Stderr, "Error: Logger initialization failed with error: %s\n", err)
         return 1
     }
 
-    LOG.Err("jeeeeps")
-    LOG.Warn("jeeeeps")
-    LOG.Info("jeeeeps")
-
-    const errorMessage string = "invalid command provided."
     // Check that at least one argument given
     if len(os.Args) < 2 {
-        LOG.Err(errorMessage)
+        LOG.Err("No command given.")
         return 1
     }
     configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
@@ -450,7 +444,6 @@ func runMain() int {
     } else {
         LOG.SetPriority(wl.DEFAULT_LOG_LEVEL)
     }
-    return 1
 
     // For now do not allow synchronous calls at all.
     // "/run/goanysync" is path is configured in tmpfiles.d and should be only
@@ -465,7 +458,7 @@ func runMain() int {
     // Locking to prevent synchronous operations
     for ok, err := getLock(processLockFile); !ok; ok, err = getLock(processLockFile) {
         if err != nil {
-            LOG.Err("Lock file error: "+err.Error())
+            LOG.Err("Lock file: %s", err)
             return 1
         }
         // TODO: specify max wait time
@@ -480,7 +473,6 @@ func runMain() int {
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
     case "initsync":
         if err := initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin); err != nil {
-            log.Println(err.Error())
             LOG.Err(err.Error())
             return 1
         }
@@ -491,7 +483,6 @@ func runMain() int {
     case "start":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
         if err := initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin); err != nil {
-            log.Println(err.Error())
             LOG.Err(err.Error())
             return 1
         }
@@ -499,8 +490,7 @@ func runMain() int {
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
     default:
-        log.Println(errorMessage)
-        fmt.Println()
+        LOG.Err("Invalid command provided", err)
         flag.Usage()
         return 1
     }

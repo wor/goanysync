@@ -40,6 +40,10 @@ func (self *Log) pMsg(p syslog.Priority, prefix string, format string, v ...inte
     if p <= self.p {
         // If increased log level print also to console
         if self.p > DEFAULT_LOG_LEVEL {
+            // Append line ending if needed
+            if len(format) == 0 || format[len(format)-1] != '\n' {
+                format = format + "\n"
+            }
             format = prefix + ": " + format
             self.conlog2.Printf(format, v...)
         }
@@ -49,6 +53,10 @@ func (self *Log) pMsg(p syslog.Priority, prefix string, format string, v ...inte
 
 func (self *Log) SetPriority(p syslog.Priority) {
     self.p = p
+}
+
+func (self *Log) Emerg(format string, v ...interface{}) {
+    self.pMsg(syslog.LOG_EMERG, "Emergency", format, v...)
 }
 
 func (self *Log) Crit(format string, v ...interface{}) {
