@@ -256,6 +256,13 @@ distcheck: $(distdir).tar.gz
 	rm -rf /tmp/_temp_$(package)_inst
 endif
 
+# Format all source with gofmt
+.PHONY: gofmt
+gofmt: $(SOURCES)
+	for s in $(SOURCES); do \
+		gofmt -w=true -tabwidth=4 -tabs=false $${s}; \
+	done
+
 .PHONY: FORCE
 FORCE:
 
