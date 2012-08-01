@@ -3,6 +3,7 @@
 
 . /etc/rc.conf
 . /etc/rc.d/functions
+[ -r /etc/conf.d/goanysync ] && . /etc/conf.d/goanysync
 
 daemon_name="goanysync"
 
@@ -11,7 +12,7 @@ start() {
   if [[ -f /run/daemons/${daemon_name} ]]; then
     stat_die
   else
-    /usr/bin/${daemon_name} start
+    /usr/bin/${daemon_name} ${GOANYSYNC_OPTS} start
     add_daemon ${daemon_name}
     stat_done
   fi
@@ -22,7 +23,7 @@ sync() {
     stat_die
   fi
   stat_busy "${daemon_name} starts to sync"
-  /usr/bin/${daemon_name} sync
+  /usr/bin/${daemon_name} ${GOANYSYNC_OPTS} sync
   stat_done
 }
 
@@ -31,7 +32,7 @@ stop() {
   if [[ ! -f /run/daemons/${daemon_name} ]]; then
     stat_die  # check if already stopped
   else
-    /usr/bin/${daemon_name} stop
+    /usr/bin/${daemon_name} ${GOANYSYNC_OPTS} stop
     rm_daemon ${daemon_name}
     stat_done
   fi
