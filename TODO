@@ -27,6 +27,8 @@ TODO
   modified and it won't mess "stop". New conf file values would be used when
   next "start" is called.
 
+- script/goanysync.in should take bin path from autoconf.
+
 MAYBE
 -----
     - Wrap logger so that log target is run-time selectable.

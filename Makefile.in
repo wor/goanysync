@@ -91,8 +91,8 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
 
-Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist: \
-	Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in misc/license-gpl3-header.in archlinux_pkg/PKGBUILD_dist.in config.status
+Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist script/goanysync: \
+	Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in misc/license-gpl3-header.in archlinux_pkg/PKGBUILD_dist.in script/goanysync.in config.status
 	./config.status $@
 
 config.status: configure
@@ -153,7 +153,8 @@ maintainer-clean: clean distclean
 		conf/$(package).cronjob \
 		conf/$(package).conf \
 		conf/$(package).init.conf \
-		conf/$(package).service
+		conf/$(package).service \
+		script/$(package)
 	rm -rf autom4te.cache
 
 .PHONY: clean
@@ -195,7 +196,7 @@ $(distdir): distclean FORCE
 	mkdir -p $(distdir)/archlinux_pkg
 	cp $(srcdir)/archlinux_pkg/PKGBUILD_dist.in $(distdir)/archlinux_pkg/
 	mkdir -p $(distdir)/script
-	cp $(srcdir)/script/$(package) $(distdir)/script/
+	cp $(srcdir)/script/$(package).in $(distdir)/script/
 	mkdir -p $(distdir)/conf
 	cp $(srcdir)/conf/tmpfiles.conf $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).cronjob.in $(distdir)/conf/

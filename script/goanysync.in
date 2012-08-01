@@ -5,7 +5,7 @@
 . /etc/rc.d/functions
 [ -r /etc/conf.d/goanysync ] && . /etc/conf.d/goanysync
 
-daemon_name="goanysync"
+daemon_name="@PACKAGE_NAME@"
 
 start() {
   stat_busy "Starting ${daemon_name} daemon"
