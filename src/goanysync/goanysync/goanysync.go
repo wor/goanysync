@@ -14,6 +14,7 @@ import (
     "errors"
     "flag"
     "fmt"
+    wl "goanysync/log"
     "log/syslog"
     "os"
     "os/exec"
@@ -21,7 +22,6 @@ import (
     "regexp"
     "syscall"
     "time"
-    wl "goanysync/log"
 )
 
 // Global logger
@@ -189,7 +189,7 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
 // preparation incorporates following acts: 1. Replacement of given paths in
 // syncSources with symlinks to directories under given tmpfs path. 2. Creation
 // of a backup directory for every syncSource path.
-func initSync(tmpfs string, syncSources *[]string, syncerBin string) (error) { // {{{
+func initSync(tmpfs string, syncSources *[]string, syncerBin string) error { // {{{
     LOG.Debug("initSync: Starting initial sync run...")
     for _, s := range *syncSources {
         var (
@@ -206,7 +206,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) (error) { /
 
         // Base tmpfs dir needs at least 0111 (+x) for every user
         // (Mkdir uses umask so we need to chmod.)
-        d, serr := os.Stat(tmpfs);
+        d, serr := os.Stat(tmpfs)
         if serr != nil {
             emsg := fmt.Sprintf("initSync: tmpfs path '%s' access error: %s", tmpfs, serr)
             return errors.New(emsg)

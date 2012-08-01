@@ -5,9 +5,9 @@
 package log
 
 import (
-    "os"
     "log"
     "log/syslog"
+    "os"
 )
 
 const (
@@ -17,16 +17,16 @@ const (
 type Log struct {
     conlog1 *log.Logger
     conlog2 *log.Logger
-    syslog *log.Logger
-    p syslog.Priority
+    syslog  *log.Logger
+    p       syslog.Priority
 }
 
 // New creates a new Log and returns pointer to it.
 func New(prefix string, p syslog.Priority) (*Log, error) {
     l := new(Log)
-    consoleFlags := log.Ldate|log.Ltime|log.Lshortfile
-    l.conlog1 = log.New(os.Stdout, prefix + ": ", consoleFlags)
-    l.conlog2 = log.New(os.Stderr, prefix + ": ", consoleFlags)
+    consoleFlags := log.Ldate | log.Ltime | log.Lshortfile
+    l.conlog1 = log.New(os.Stdout, prefix+": ", consoleFlags)
+    l.conlog2 = log.New(os.Stderr, prefix+": ", consoleFlags)
     l.p = p
 
     var err error
