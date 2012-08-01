@@ -11,7 +11,7 @@ license=('GPL')
 depends=('rsync' 'systemd-tools')
 makedepends=('gzip' 'txt2man' 'go')
 optdepends=('cron: allow hourly (default) syncs between SSD and tmpfs.')
-backup=("etc/${_base_pkgname}.conf")
+backup=("etc/${_base_pkgname}.conf" "etc/conf.d/${_base_pkgname}")
 install=${_base_pkgname}.install
 sha256sums=()
 

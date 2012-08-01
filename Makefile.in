@@ -45,6 +45,7 @@ man1dir     = $(mandir)/man1/
 
 INSTALL_SERVICE   = $(libdir)/systemd/system
 INSTALL_RCD       = $(sysconfdir)/rc.d
+INSTALL_CONFD     = $(sysconfdir)/conf.d
 INSTALL_CRONJOB   = $(sysconfdir)/cron.hourly
 INSTALL_TMPFILESD = @tmpfilesdir@
 INSTALL_INITCONF  = @initdir@
@@ -106,6 +107,7 @@ config.status: configure
 install: all
 	if test "${is_archlinux}x" == "yesx"; then \
 		$(INSTALL) -D --mode=0755 script/$(package) "$(DESTDIR)$(INSTALL_RCD)/$(package)"; \
+		$(INSTALL) -D --mode=0755 conf/$(package).conf.d "$(DESTDIR)$(INSTALL_CONFD)/$(package)"; \
 	fi
 	$(INSTALL) -D --mode=0744 conf/$(package).cronjob   "$(DESTDIR)$(INSTALL_CRONJOB)/$(package)"
 	# Subsitute shell variables in the cronjob file
@@ -199,6 +201,7 @@ $(distdir): distclean FORCE
 	cp $(srcdir)/script/$(package).in $(distdir)/script/
 	mkdir -p $(distdir)/conf
 	cp $(srcdir)/conf/tmpfiles.conf $(distdir)/conf/
+	cp $(srcdir)/conf/$(package).conf.d $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).cronjob.in $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).service.in $(distdir)/conf/
 	cp $(srcdir)/conf/$(package).conf.in $(distdir)/conf/
