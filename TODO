@@ -1,5 +1,7 @@
 TODO
 ====
+- Log: Allow to set syslog priority to different value than console priority.
+
 - TMPFS paths parent dir must exists at the moment.
 
 - Cleanup deb package creation in Makefile:
