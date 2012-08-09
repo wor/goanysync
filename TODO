@@ -1,5 +1,18 @@
 TODO
 ====
+- TMPFS paths content is not deleted after stopping goanysync:
+    - Good thing if something goes wrong, one place where data can still be
+      found.
+    - If a user doesn't have "enough" memory the TMPFS can fill up.
+    - Possible partial solutions:
+        -> One could always delete the data after stopping goanysync.
+        -> Add a cmdline option for TMPFS path cleanup for unsync and stop options,
+           or general option which removes all but currently synced data.
+        -> Add a remainder how much space is used.
+
+- Add "info" command which shows currently used space and what and where data is
+  stored and synced.
+
 - Log: Allow to set syslog priority to different value than console priority.
 
 - TMPFS paths parent dir must exists at the moment.
