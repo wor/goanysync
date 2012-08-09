@@ -125,10 +125,10 @@ func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPat
     volatilePrefix := path.Join(tmpfs, "goanysync-")
     const backupPostfix string = "-backup_goanysync"
 
-    volatileBasePathRe := fmt.Sprintf("%s[0-9]+:[0-9]+", volatilePrefix)
+    volatileBasePathRe := fmt.Sprintf("%s[0-9]+-[0-9]+", volatilePrefix)
     volatilePathRe = path.Join(volatileBasePathRe, s)
 
-    volatileBasePath := fmt.Sprintf("%s%d:%d", volatilePrefix, uid, gid)
+    volatileBasePath := fmt.Sprintf("%s%d-%d", volatilePrefix, uid, gid)
     volatilePath = path.Join(volatileBasePath, s)
 
     backupPath = s + backupPostfix
