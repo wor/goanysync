@@ -402,7 +402,7 @@ func checkLockFileDir(dir string) (err error) { // {{{
 // runMain is a main function which returns programs exit value.
 func runMain() int {
     var err error
-    LOG, err = wl.New("goanysync", syslog.LOG_DEBUG)
+    LOG, err = wl.New("goanysync", syslog.Priority(0), wl.DEFAULT_LOG_LEVEL)
     if err != nil {
         fmt.Fprintf(os.Stderr, "Error: Logger initialization failed with error: %s\n", err)
         return 1
@@ -414,7 +414,8 @@ func runMain() int {
         return 1
     }
     configFilePath := flag.String("c", "/etc/goanysync.conf", "Config file.")
-    verbose := flag.Bool("v", false, "Be more verbose.")
+    verbose := flag.Bool("v", false, "Be more verbose with console messages.")
+    syslogLogLevel := flag.Int("sl", int(wl.DEFAULT_LOG_LEVEL), "Set syslog log level.")
     flag.Usage = func() {
         fmt.Fprintf(os.Stderr, "Usage of %s %s:\n", os.Args[0], "[options] <command>")
         fmt.Fprintf(os.Stderr, "  Commands:\n")
@@ -426,8 +427,19 @@ func runMain() int {
         fmt.Fprintf(os.Stderr, "   stop\t\tAlias for running sync and unsync.\n")
         fmt.Fprintf(os.Stderr, "  Options:\n")
         flag.PrintDefaults()
+        if *verbose {
+            fmt.Fprintf(os.Stderr, "  Log levels:\n")
+            for i := 0; i < len(wl.LOG_LEVELS); i++ {
+                fmt.Fprintf(os.Stderr, "    %d: %s\n", i, wl.LOG_LEVELS[syslog.Priority(i)])
+            }
+        }
     }
     flag.Parse()
+
+    LOG.SetSyslogPriority(syslog.Priority(*syslogLogLevel))
+    if *verbose {
+        LOG.SetConsoleLogPriority(syslog.LOG_DEBUG)
+    }
 
     // Read config file
     copts, err := ReadConfigFile(*configFilePath)
@@ -438,8 +450,6 @@ func runMain() int {
 
     if *verbose {
         copts.Print()
-    } else {
-        LOG.SetPriority(wl.DEFAULT_LOG_LEVEL)
     }
 
     // For now do not allow synchronous calls at all.

@@ -14,20 +14,33 @@ const (
     DEFAULT_LOG_LEVEL = syslog.LOG_WARNING
 )
 
+var LOG_LEVELS = map[syslog.Priority] string {
+    syslog.LOG_EMERG: "Emergency",
+    syslog.LOG_ALERT: "Alert",
+    syslog.LOG_CRIT: "Critical",
+    syslog.LOG_ERR: "Error",
+    syslog.LOG_WARNING: "Warning",
+    syslog.LOG_NOTICE: "Notice",
+    syslog.LOG_INFO: "Info",
+    syslog.LOG_DEBUG: "Debug",
+}
+
 type Log struct {
     conlog1 *log.Logger
     conlog2 *log.Logger
     syslog  *log.Logger
-    p       syslog.Priority
+    sp      syslog.Priority // syslog priority
+    cp      syslog.Priority // console log priority
 }
 
 // New creates a new Log and returns pointer to it.
-func New(prefix string, p syslog.Priority) (*Log, error) {
+func New(prefix string, sp syslog.Priority, cp syslog.Priority) (*Log, error) {
     l := new(Log)
     consoleFlags := log.Ldate | log.Ltime | log.Lshortfile
     l.conlog1 = log.New(os.Stdout, prefix+": ", consoleFlags)
     l.conlog2 = log.New(os.Stderr, prefix+": ", consoleFlags)
-    l.p = p
+    l.sp = sp
+    l.cp = cp
 
     var err error
     if l.syslog, err = syslog.NewLogger(syslog.LOG_INFO, log.Lshortfile); err != nil {
@@ -37,44 +50,57 @@ func New(prefix string, p syslog.Priority) (*Log, error) {
 }
 
 func (self *Log) pMsg(p syslog.Priority, prefix string, format string, v ...interface{}) {
-    if p <= self.p {
-        // If increased log level print also to console
-        if self.p > DEFAULT_LOG_LEVEL {
-            // Append line ending if needed
-            if len(format) == 0 || format[len(format)-1] != '\n' {
-                format = format + "\n"
-            }
-            format = prefix + ": " + format
-            self.conlog2.Printf(format, v...)
-        }
+    // Print to syslog
+    if p <= self.sp {
         self.syslog.Printf(format, v...)
+    }
+    // Print to console log
+    if p <= self.cp {
+        // Append line ending if needed
+        if len(format) == 0 || format[len(format)-1] != '\n' {
+            format = format + "\n"
+        }
+        format = prefix + ": " + format
+        self.conlog2.Printf(format, v...)
     }
 }
 
-func (self *Log) SetPriority(p syslog.Priority) {
-    self.p = p
+func (self *Log) SetSyslogPriority(p syslog.Priority) {
+    self.sp = p
+}
+
+func (self *Log) SetConsoleLogPriority(p syslog.Priority) {
+    self.cp = p
 }
 
 func (self *Log) Emerg(format string, v ...interface{}) {
-    self.pMsg(syslog.LOG_EMERG, "Emergency", format, v...)
+    self.pMsg(syslog.LOG_EMERG, LOG_LEVELS[syslog.LOG_EMERG], format, v...)
+}
+
+func (self *Log) Alert(format string, v ...interface{}) {
+    self.pMsg(syslog.LOG_ALERT, LOG_LEVELS[syslog.LOG_ALERT], format, v...)
 }
 
 func (self *Log) Crit(format string, v ...interface{}) {
-    self.pMsg(syslog.LOG_CRIT, "Critical", format, v...)
+    self.pMsg(syslog.LOG_CRIT, LOG_LEVELS[syslog.LOG_CRIT], format, v...)
 }
 
 func (self *Log) Err(format string, v ...interface{}) {
-    self.pMsg(syslog.LOG_ERR, "Error", format, v...)
+    self.pMsg(syslog.LOG_ERR, LOG_LEVELS[syslog.LOG_ERR], format, v...)
 }
 
 func (self *Log) Warn(format string, v ...interface{}) {
-    self.pMsg(syslog.LOG_WARNING, "Warning", format, v...)
+    self.pMsg(syslog.LOG_WARNING, LOG_LEVELS[syslog.LOG_WARNING], format, v...)
+}
+
+func (self *Log) Notice(format string, v ...interface{}) {
+    self.pMsg(syslog.LOG_NOTICE, LOG_LEVELS[syslog.LOG_NOTICE], format, v...)
 }
 
 func (self *Log) Info(format string, v ...interface{}) {
-    self.pMsg(syslog.LOG_INFO, "Info", format, v...)
+    self.pMsg(syslog.LOG_INFO, LOG_LEVELS[syslog.LOG_INFO], format, v...)
 }
 
 func (self *Log) Debug(format string, v ...interface{}) {
-    self.pMsg(syslog.LOG_DEBUG, "Debug", format, v...)
+    self.pMsg(syslog.LOG_DEBUG, LOG_LEVELS[syslog.LOG_DEBUG], format, v...)
 }
