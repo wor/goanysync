@@ -16,9 +16,11 @@ import (
     "fmt"
     wl "goanysync/log"
     "log/syslog"
+    "math"
     "os"
     "os/exec"
     "path"
+    "path/filepath"
     "regexp"
     "syscall"
     "time"
@@ -156,6 +158,70 @@ func releaseLock(lockName string) { // {{{
 }   // }}}
 
 // --------------------------------------------------------------------------
+
+// info shows currently used space and what and where data is stored and
+// synced.
+func info(copts *ConfigOptions) { // {{{
+    var ( // {{{
+        target     string
+        uid, gid   uint
+        err        error
+        bgRed      = "\x1b[41m"
+        reset      = "\x1b[0m"
+        colorStart string
+        colorEnd   string
+        totalSize  int64
+    )   // }}}
+
+    fmt.Printf("Current base TMPFS path is: %s\n", copts.tmpfsPath)
+    fmt.Printf("Sync path info:\n")
+    for i, s := range copts.syncPaths {
+        if _, uid, gid, err = isValidSource(s); err != nil {
+            fmt.Printf("  %s\n", err)
+            continue
+        }
+        ss, backupPath, _ := pathNameGen(s, copts.tmpfsPath, uid, gid)
+
+        colorStart, colorEnd = "", ""
+        targetStr := " -> not a symlink."
+        if target, err = os.Readlink(s); err == nil {
+            targetStr = " -> " + target
+        }
+        if target != ss {
+            colorStart, colorEnd = bgRed, reset
+        }
+        fmt.Printf("%d. Sync path: %s%s%s%s\n", i, colorStart, s, targetStr, colorEnd)
+
+        var size int64
+        colorStart, colorEnd = "", ""
+        if !exists(ss) {
+            colorStart, colorEnd = bgRed, reset
+        } else {
+            wf := func(path string, info os.FileInfo, err error) error {
+                if err == nil {
+                    size = size + info.Size()
+                }
+                return nil
+            }
+            err = filepath.Walk(ss, wf)
+            // Convert size to MB rounding up
+            size = int64(math.Floor(float64(size)/(1024*1024) + 0.5))
+            totalSize = totalSize + size
+        }
+        fmt.Printf("  tmpfs path  : %s%s%s\n", colorStart, ss, colorEnd)
+        if size != 0 {
+            fmt.Printf("  tmpfs size  : %dM\n", size)
+        }
+
+        colorStart, colorEnd = "", ""
+        if !exists(backupPath) {
+            colorStart = bgRed
+            colorEnd = reset
+        }
+        fmt.Printf("  backup path : %s%s%s\n", colorStart, backupPath, colorEnd)
+    }
+    fmt.Printf("---------- Total space of TMPFS used: %dM\n", totalSize)
+}   // }}}
 
 // checkAndFix checks if any sync sources where synced but not finally unsynced.
 // Restores such sources from backup path to original state.
@@ -425,6 +491,7 @@ func runMain() int {
         fmt.Fprintf(os.Stderr, "   check\tChecks if sync was called without unsync before tmpfs was cleared.\n")
         fmt.Fprintf(os.Stderr, "   start\tAlias for running check and initsync.\n")
         fmt.Fprintf(os.Stderr, "   stop\t\tAlias for running sync and unsync.\n")
+        fmt.Fprintf(os.Stderr, "   info\t\tGives information about current sync status.\n")
         fmt.Fprintf(os.Stderr, "  Options:\n")
         flag.PrintDefaults()
         if *verbose {
@@ -476,6 +543,8 @@ func runMain() int {
     defer releaseLock(processLockFile)
 
     switch flag.Arg(0) {
+    case "info":
+        info(copts)
     case "check":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
     case "initsync":
