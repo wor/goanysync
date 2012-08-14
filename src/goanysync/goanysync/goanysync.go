@@ -460,9 +460,8 @@ func checkLockFileDir(dir string) (err error) { // {{{
             return
         }
 
-        // TODO: Check that root has write 7 and that no group or other has +w
-        if fi.Mode().Perm() != 0755 {
-            err = errors.New("Lock file parent dir did not have right permissions != 755")
+        if fi.Mode().Perm()&0022 != 0 {
+            err = errors.New("Lock file parent dir did not have right permissions: others than the owner had write permissions.")
             return
         }
     }
