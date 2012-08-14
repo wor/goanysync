@@ -66,7 +66,11 @@ MANPAGES := $(DOC_SOURCES:$(DOCDIR)/%=%)
 MANPAGES := $(MANPAGES:%$(DOC_POSTFIX)=%$(MAN_POSTFIX))
 
 # Autoconf generated files
-AUTOCONF_GEN_FILES := Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist script/goanysync
+AUTOCONF_GEN_FILES := Makefile \
+	conf/$(package).cronjob conf/$(package).conf \
+	conf/$(package).init.conf conf/$(package).service \
+	misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist \
+	script/$(package)
 
 ##############################################
 
@@ -157,15 +161,8 @@ maintainer-clean: clean distclean
 		config.status \
 		config.log \
 		Makefile.am \
-		Makefile \
-		misc/license-gpl3-header \
+		$(AUTOCONF_GEN_FILES) \
 		misc/license-gpl3-header.deb \
-		archlinux_pkg/PKGBUILD_dist \
-		conf/$(package).cronjob \
-		conf/$(package).conf \
-		conf/$(package).init.conf \
-		conf/$(package).service \
-		script/$(package)
 	rm -rf autom4te.cache
 
 .PHONY: clean
