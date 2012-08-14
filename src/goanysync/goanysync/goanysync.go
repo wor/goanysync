@@ -448,19 +448,23 @@ func checkLockFileDir(dir string) (err error) { // {{{
         return
     }
 
-    if fi.Mode().Perm() != 0755 {
-        err = errors.New("Lock file parent dir did not have right permissions != 755")
-        return
-    }
+    // If process efective user id is root then add additional checks
+    if os.Geteuid() == 0 {
+        var uid, _ uint
+        if uid, _, err = getFileUserAndGroupId(fi); err != nil {
+            return
+        }
 
-    var uid uint
-    if uid, _, err = getFileUserAndGroupId(fi); err != nil {
-        return
-    }
+        if uid != 0 {
+            err = errors.New("Lock file parent dir was not root owned.")
+            return
+        }
 
-    if uid != 0 {
-        err = errors.New("Lock file parent dir was not root owned.")
-        return
+        // TODO: Check that root has write 7 and that no group or other has +w
+        if fi.Mode().Perm() != 0755 {
+            err = errors.New("Lock file parent dir did not have right permissions != 755")
+            return
+        }
     }
     return
 }   // }}}
@@ -520,17 +524,14 @@ func runMain() int {
     }
 
     // For now do not allow synchronous calls at all.
-    // "/run/goanysync" is path is configured in tmpfiles.d and should be only
-    // root writable.
-    const processLockFile string = "/run/goanysync/process.lock"
     // Check that lock files base path
-    if err = checkLockFileDir(path.Dir(processLockFile)); err != nil {
+    if err = checkLockFileDir(path.Dir(copts.lockfile)); err != nil {
         LOG.Err("Lock file path: %s", err)
         return 1
     }
 
     // Locking to prevent synchronous operations
-    for ok, err := getLock(processLockFile); !ok; ok, err = getLock(processLockFile) {
+    for ok, err := getLock(copts.lockfile); !ok; ok, err = getLock(copts.lockfile) {
         if err != nil {
             LOG.Err("Lock file: %s", err)
             return 1
@@ -540,7 +541,7 @@ func runMain() int {
         time.Sleep(time.Millisecond * 100)
     }
     // If os.Exit() is called remember to remove the lock file, manually.
-    defer releaseLock(processLockFile)
+    defer releaseLock(copts.lockfile)
 
     switch flag.Arg(0) {
     case "info":

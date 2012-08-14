@@ -19,6 +19,7 @@ type ConfigOptions struct {
     tmpfsPath string
     syncPaths []string
     syncerBin string
+    lockfile string
 }
 
 func (self *ConfigOptions) Print() {
@@ -111,6 +112,24 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
         return
     }
 
+    // ---------------------------------------
+    // Read the config files LOCKFILE option
+    if _, ok := c.Data["LOCKFILE"]; !ok {
+        err = errors.New("No LOCKFILE defined.")
+        return
+    }
+    lockfilePath := strings.TrimSpace(*c.Data["LOCKFILE"])
+
+    if len(lockfilePath) < 1 {
+        err = errors.New("Empty LOCKFILE path defined.")
+        return
+    }
+
+    if !path.IsAbs(lockfilePath) {
+        err = errors.New("lockfilePath path must be absolute.")
+        return
+    }
+
     // Parse WHATTOSYNC comma separated list of paths
     // XXX: if path names contain commas then though luck for now
     fieldFunc := func(r rune) bool {
@@ -125,7 +144,7 @@ func ReadConfigFile(cfp string) (copts *ConfigOptions, err error) {
         paths[i] = strings.TrimSpace(v)
     }
 
-    copts = &ConfigOptions{tmpfsPath, paths, syncerBin}
+    copts = &ConfigOptions{tmpfsPath, paths, syncerBin, lockfilePath}
     return
 }
 
