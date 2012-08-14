@@ -65,6 +65,9 @@ DOC_SOURCES := $(wildcard $(DOCDIR)/*$(DOC_POSTFIX))
 MANPAGES := $(DOC_SOURCES:$(DOCDIR)/%=%)
 MANPAGES := $(MANPAGES:%$(DOC_POSTFIX)=%$(MAN_POSTFIX))
 
+# Autoconf generated files
+AUTOCONF_GEN_FILES := Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist script/goanysync
+
 ##############################################
 
 ifneq ($(and $(TXT2MAN),$(GZIP)),)
@@ -77,7 +80,7 @@ endif
 ##############################################
 
 .PHONY: all
-all: $(package) $(DOC_PREQ)
+all: $(AUTOCONF_GEN_FILES) $(package) $(DOC_PREQ)
 
 .PHONY: docs
 docs: $(MANPAGES)
@@ -92,9 +95,15 @@ $(package): $(SOURCES)
 %$(MAN_POSTFIX): $(DOCDIR)/%$(DOC_POSTFIX)
 	$(TXT2MAN) $^ | $(GZIP) -9 -c > $@
 
-Makefile conf/$(package).cronjob conf/$(package).conf conf/$(package).init.conf conf/$(package).service misc/license-gpl3-header archlinux_pkg/PKGBUILD_dist script/goanysync: \
-	Makefile.in conf/$(package).cronjob.in conf/$(package).conf.in conf/$(package).init.conf.in conf/$(package).service.in misc/license-gpl3-header.in archlinux_pkg/PKGBUILD_dist.in script/goanysync.in config.status
-	./config.status $@
+#
+# Autoconf generated files
+#
+define RULE_template =
+$(1): $(1).in
+	./config.status $(1)
+endef
+
+$(foreach file,$(AUTOCONF_GEN_FILES),$(eval $(call RULE_template,$(file))))
 
 config.status: configure
 	./config.status --recheck
