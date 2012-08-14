@@ -19,7 +19,7 @@ type ConfigOptions struct {
     tmpfsPath string
     syncPaths []string
     syncerBin string
-    lockfile string
+    lockfile  string
 }
 
 func (self *ConfigOptions) Print() {

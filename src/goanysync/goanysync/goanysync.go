@@ -157,6 +157,40 @@ func releaseLock(lockName string) { // {{{
     }
 }   // }}}
 
+// checkLockFileDir checks if directory which contains the lock file exists and
+// has right permissions and owner.
+func checkLockFileDir(dir string) (err error) { // {{{
+    var fi os.FileInfo
+
+    if fi, err = os.Stat(dir); err != nil {
+        return
+    }
+
+    if !fi.IsDir() {
+        err = errors.New("Lock files parent dir was not a directory: " + dir)
+        return
+    }
+
+    // If process efective user id is root then add additional checks
+    if os.Geteuid() == 0 {
+        var uid, _ uint
+        if uid, _, err = getFileUserAndGroupId(fi); err != nil {
+            return
+        }
+
+        if uid != 0 {
+            err = errors.New("Lock file parent dir was not root owned.")
+            return
+        }
+
+        if fi.Mode().Perm()&0022 != 0 {
+            err = errors.New("Lock file parent dir did not have right permissions: others than the owner had write permissions.")
+            return
+        }
+    }
+    return
+}   // }}}
+
 // --------------------------------------------------------------------------
 
 // info shows currently used space and what and where data is stored and
@@ -434,39 +468,7 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
     return
 }   // }}}
 
-// checkLockFileDir checks if directory which contains the lock file exists and
-// has right permissions and owner.
-func checkLockFileDir(dir string) (err error) { // {{{
-    var fi os.FileInfo
-
-    if fi, err = os.Stat(dir); err != nil {
-        return
-    }
-
-    if !fi.IsDir() {
-        err = errors.New("Lock files parent dir was not a directory: " + dir)
-        return
-    }
-
-    // If process efective user id is root then add additional checks
-    if os.Geteuid() == 0 {
-        var uid, _ uint
-        if uid, _, err = getFileUserAndGroupId(fi); err != nil {
-            return
-        }
-
-        if uid != 0 {
-            err = errors.New("Lock file parent dir was not root owned.")
-            return
-        }
-
-        if fi.Mode().Perm()&0022 != 0 {
-            err = errors.New("Lock file parent dir did not have right permissions: others than the owner had write permissions.")
-            return
-        }
-    }
-    return
-}   // }}}
+// --------------------------------------------------------------------------
 
 // runMain is a main function which returns programs exit value.
 func runMain() int {
