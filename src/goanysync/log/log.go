@@ -14,15 +14,15 @@ const (
     DEFAULT_LOG_LEVEL = syslog.LOG_WARNING
 )
 
-var LOG_LEVELS = map[syslog.Priority] string {
-    syslog.LOG_EMERG: "Emergency",
-    syslog.LOG_ALERT: "Alert",
-    syslog.LOG_CRIT: "Critical",
-    syslog.LOG_ERR: "Error",
+var LOG_LEVELS = map[syslog.Priority]string{
+    syslog.LOG_EMERG:   "Emergency",
+    syslog.LOG_ALERT:   "Alert",
+    syslog.LOG_CRIT:    "Critical",
+    syslog.LOG_ERR:     "Error",
     syslog.LOG_WARNING: "Warning",
-    syslog.LOG_NOTICE: "Notice",
-    syslog.LOG_INFO: "Info",
-    syslog.LOG_DEBUG: "Debug",
+    syslog.LOG_NOTICE:  "Notice",
+    syslog.LOG_INFO:    "Info",
+    syslog.LOG_DEBUG:   "Debug",
 }
 
 type Log struct {
