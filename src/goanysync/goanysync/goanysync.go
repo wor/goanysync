@@ -434,10 +434,11 @@ func runMain() int {
     //var fm1 os.FileMode = 1 << (32-1-2)
     //fmt.Printf("filemode: %o\n", fm1)
     //fmt.Printf("filemode s: %o\n", os.ModeSticky)
-    //var fm2 os.FileMode = 0777
-    //fmt.Printf("filemode: %b\n", 0777)
-    //fmt.Printf("filemode: %o\n", fm2)
-    //fmt.Printf("filemode: %b\n", fm1 | fm2)
+    var fm2 os.FileMode = 0575
+    fmt.Printf("filemode: %o\n", fm2)
+    fmt.Printf("filemode: %32b\n", fm2)
+    fmt.Printf("filemode: %32b\n", 0022)
+    fmt.Printf("filemode: %32b\n", fm2&0022)
 
     //var fm os.FileMode = 0777 | os.ModeSticky | os.ModeDir
     //fmt.Println("----")
