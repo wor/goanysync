@@ -1,5 +1,8 @@
 TODO
 ====
+- Check that proper error message is given for out-of-space errors on TMPFS.
+    - Test this with new tmpfs with limited space.
+
 - Document info command (man) and make it clearer, it's more like debug tool
   now, not that useful.
 
@@ -48,7 +51,6 @@ MAYBE
 -----
     - Wrap logger so that log target is run-time selectable.
     - Option for snapshot: backup backups to rotating .tar.xz files.
-    - Some way to check tmpfs size?
 
 NEVER
 -----
