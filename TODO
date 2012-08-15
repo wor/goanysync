@@ -3,8 +3,6 @@ TODO
 - Document info command (man) and make it clearer, it's more like debug tool
   now, not that useful.
 
-- Debug log function end also.
-
 - TMPFS paths content is not deleted after stopping goanysync:
     - Good thing if something goes wrong, one place where data can still be
       found.

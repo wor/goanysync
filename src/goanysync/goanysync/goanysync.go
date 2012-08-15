@@ -281,6 +281,7 @@ func checkAndFix(tmpfs string, syncSources *[]string) { // {{{
             os.Rename(backupPath, s)
         }
     }
+    LOG.Debug("checkAndFix: ...completed check.")
     return
 }   // }}}
 
@@ -367,6 +368,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) error { // 
             LOG.Debug("initSync: sync path was already initialized: %s", s)
         }   // }}}
     }
+    LOG.Debug("initSync: ...completed without errors.")
     return nil
 }   // }}}
 
@@ -422,6 +424,7 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
 
         LOG.Debug("sync: synced dir '%s'.", s)
     }
+    LOG.Debug("sync: ...completed.")
     return
 }   // }}}
 
@@ -465,6 +468,7 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
             os.RemoveAll(volatilePath)
         }
     }
+    LOG.Debug("unsync: ...completed.")
     return
 }   // }}}
 
