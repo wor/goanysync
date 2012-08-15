@@ -18,6 +18,11 @@ type Config struct {
     Data map[string]*string
 }
 
+const (
+    COMMENT = '#'
+    OPTION  = "="
+)
+
 func Read(file string) (*Config, error) { // {{{
     // Initialize Config type
     c := new(Config)
@@ -27,11 +32,6 @@ func Read(file string) (*Config, error) { // {{{
     if err != nil {
         return nil, err
     }
-
-    const (
-        COMMENT = '#'
-        OPTION  = "="
-    )
 
     // Read the config file and store option values to the created config
     br := bufio.NewReader(f)
