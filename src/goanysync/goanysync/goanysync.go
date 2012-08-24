@@ -458,9 +458,11 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
         }   // }}}
 
         // Remove the link and replace it with backup
-        // TODO: don't ignore errors
-        os.Remove(s)
-        os.Rename(backupPath, s)
+        os.Remove(s) // TODO: how we should react to an error from this?
+        if err := os.Rename(backupPath, s); err != nil {
+            LOG.Err("unsync: While trying to rename backup '%s' to '%s': %s", backupPath, s, err)
+            continue
+        }
 
         // XXX: Is there any reason to remove volatile target? Any other than
         // saving space?
