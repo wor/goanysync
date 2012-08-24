@@ -635,6 +635,15 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
             if err := os.RemoveAll(volatilePath); err != nil {
                 LOG.Err("unsync: While trying to remove volatile path: %s", err)
             }
+            // Remove empty parents until base TMPFS dir
+            volatileParent := path.Clean(volatilePath)
+            cleanTmpfs := path.Clean(tmpfs)
+            for rerr := error(nil); rerr == nil; rerr = os.Remove(volatileParent) {
+                volatileParent = path.Dir(volatileParent)
+                if cleanTmpfs == volatileParent {
+                    break
+                }
+            }
         }
     }
     LOG.Debug("unsync: ...completed.")
