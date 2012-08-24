@@ -744,7 +744,7 @@ func runMain() int {
         }
     case "stop":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
-        unsync(copts.tmpfsPath, &copts.syncPaths, false)
+        unsync(copts.tmpfsPath, &copts.syncPaths, true)
         // If not all volatile paths were synced back issue a warning
         // XXX: does this really do above?
         if ok := checkVolatile(copts.tmpfsPath, &copts.syncPaths); !ok {
