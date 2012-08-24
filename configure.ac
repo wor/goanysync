@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.68])
-AC_INIT([goanysync], [1.03], [esa.maatta@iki.fi], [], [https://github.com/wor/goanysync])
+AC_INIT([goanysync], [1.10b], [esa.maatta@iki.fi], [], [https://github.com/wor/goanysync])
 AC_SUBST([fullname], ["Esa Määttä"])
 AC_SUBST([C_YEARS], [2012])
 
