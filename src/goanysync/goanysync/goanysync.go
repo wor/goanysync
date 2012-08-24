@@ -464,10 +464,12 @@ func unsync(tmpfs string, syncSources *[]string, removeVolatile bool) { // {{{
             continue
         }
 
-        // XXX: Is there any reason to remove volatile target? Any other than
-        // saving space?
+        // Removing volatile after unsync makes checking that everything is
+        // synced back to disk easier.
         if removeVolatile {
-            os.RemoveAll(volatilePath)
+            if err := os.RemoveAll(volatilePath); err != nil {
+                LOG.Err("unsync: While trying to remove volatile path: %s", err)
+            }
         }
     }
     LOG.Debug("unsync: ...completed.")
@@ -563,7 +565,7 @@ func runMain() int {
     case "sync":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
     case "unsync":
-        unsync(copts.tmpfsPath, &copts.syncPaths, false)
+        unsync(copts.tmpfsPath, &copts.syncPaths, true)
     case "start":
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
         if err := initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin); err != nil {
