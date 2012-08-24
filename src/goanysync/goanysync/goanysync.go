@@ -22,12 +22,20 @@ import (
     "path"
     "path/filepath"
     "regexp"
+    "strings"
     "syscall"
     "time"
 )
 
 // Global logger
 var LOG *wl.Log
+
+const (
+    VOLATILE_BASE_PREFIX = "goanysync-"
+    VOLATILE_BASE_RE     = VOLATILE_BASE_PREFIX + "[0-9]+-[0-9]+"
+    VOLATILE_BASE        = VOLATILE_BASE_PREFIX + "%d-%d"
+    BACKUP_POSTFIX       = "-backup_goanysync"
+)
 
 // mkdirAll creates a directory named path, along with any necessary parents,
 // and returns nil, or else returns an error. The permission bits perm are used
@@ -105,7 +113,7 @@ func getFileUserAndGroupId(fi os.FileInfo) (uid uint, gid uint, err error) { // 
 // isValidSource checks whether given path name "s" is valid source for sync.
 // Returns necessary information for sync/unsync function about "s".
 func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { // {{{
-    if fi, err = os.Stat(s); err != nil {
+    if fi, uid, gid, err = getFileInfo(s); err != nil {
         return
     }
 
@@ -113,27 +121,47 @@ func isValidSource(s string) (fi os.FileInfo, uid uint, gid uint, err error) { /
         err = errors.New("Sync source path was not a directory: " + s)
         return
     }
+    return
+}   // }}}
+
+// getFileInfo returns given files FileInfo, user id and group id and possibly
+// an error.
+func getFileInfo(fn string) (fi os.FileInfo, uid uint, gid uint, err error) { // {{{
+    if fi, err = os.Stat(fn); err != nil {
+        return
+    }
 
     if uid, gid, err = getFileUserAndGroupId(fi); err != nil {
         return
     }
-
     return
+}   // }}}
+
+// Generate regex to identify base volatile paths.
+func getVolatileBasePathRe(tmpfs string) (re string) { // {{{
+    return path.Join(tmpfs, VOLATILE_BASE_RE)
+}   // }}}
+
+// Generate backup path for sync source
+func getBackupPath(syncSource string) string { // {{{
+    return syncSource + BACKUP_POSTFIX
 }   // }}}
 
 // pathNameGen generates volatile and backup path names and a regex string for
 // matching volatile path name.
 func pathNameGen(s string, tmpfs string, uid, gid uint) (volatilePath, backupPath, volatilePathRe string) { // {{{
-    volatilePrefix := path.Join(tmpfs, "goanysync-")
-    const backupPostfix string = "-backup_goanysync"
+    //volatilePrefix := path.Join(tmpfs, VOLATILE_BASE_PREFIX)
 
-    volatileBasePathRe := fmt.Sprintf("%s[0-9]+-[0-9]+", volatilePrefix)
+    volatileBasePathRe := getVolatileBasePathRe(tmpfs)
+
+    //volatileBasePathRe := fmt.Sprintf("%s[0-9]+-[0-9]+", volatilePrefix)
     volatilePathRe = path.Join(volatileBasePathRe, s)
 
-    volatileBasePath := fmt.Sprintf("%s%d-%d", volatilePrefix, uid, gid)
+    volatileBasePath := path.Join(tmpfs, fmt.Sprintf(VOLATILE_BASE, uid, gid))
+    //volatileBasePath := fmt.Sprintf("%s%d-%d", volatilePrefix, uid, gid)
     volatilePath = path.Join(volatileBasePath, s)
 
-    backupPath = s + backupPostfix
+    backupPath = getBackupPath(s)
     return
 }   // }}}
 
@@ -191,10 +219,126 @@ func checkLockFileDir(dir string) (err error) { // {{{
     return
 }   // }}}
 
+// Checks if volatile TMPFS path contains paths not specified in syncSources.
+// Returns first such path found.
+func checkVolatileForExtra(tmpfs string, syncSources *[]string, onlyFirst bool) (ok bool, extraPaths *[]string, extraBackupPaths *[]string, err error) { // {{{
+    volatileBasePathRe := getVolatileBasePathRe(tmpfs)
+    vbpRE := regexp.MustCompile(volatileBasePathRe)
+    foundExtraSyncSources := make([]string, 0, 100)
+    foundPathsWithBackups := make([]string, 0, 100)
+    stopError := errors.New("Stopped filewalk normally.")
+
+    // Helper function to remove tmpfs path prefix from given path
+    trimTmpfsPrefix := func(path string) string {
+        loc := vbpRE.FindStringIndex(path)
+        if loc == nil {
+            panicMsg := fmt.Sprintf("trimTmpfsPrefix: '%s' regex did not match '%s'\n", volatileBasePathRe, path)
+            panic(panicMsg)
+        }
+        return path[loc[1]:]
+    }
+
+    // Path walker function for checking existing backup paths and symlinked
+    // targets.
+    wfBackupLinkChecker := func(path string, info os.FileInfo, err error) error {
+        if !info.IsDir() {
+            return nil
+        }
+        fullPath := path
+        path = trimTmpfsPrefix(path)
+        backupPath := getBackupPath(path)
+
+        // If backup path exists and path is a symlink which points to tmpfs
+        // path or is a broken symlink. This check could be more comprehensive
+        // but it should now cover the most usual cases.
+        if target, err := os.Readlink(path); exists(backupPath) && err == nil && (target == fullPath || !exists(target)) {
+            foundPathsWithBackups = append(foundPathsWithBackups, fullPath)
+            return filepath.SkipDir
+        }
+        return nil
+    }
+
+    // Path walker function
+    wf := func(path string, info os.FileInfo, err error) error {
+        if err != nil {
+            return err
+        }
+        if !info.IsDir() {
+            return nil
+        }
+        match, rerr := regexp.MatchString(volatileBasePathRe, path)
+        if rerr != nil {
+            panic("checkVolatileForExtra: Regexp matching error: " + rerr.Error())
+        }
+        if match {
+            fullPath := path
+            path = trimTmpfsPrefix(path)
+            failCount := 0
+            for _, ss := range *syncSources {
+                if path == ss {
+                    return filepath.SkipDir
+                } else if !strings.HasPrefix(path, ss) && !strings.HasPrefix(ss, path) {
+                    failCount++
+                } else {
+                    break // path was part of a sync source path
+                }
+            }
+            if failCount >= len(*syncSources) {
+                err := filepath.Walk(fullPath, wfBackupLinkChecker)
+                if err != nil {
+                    LOG.Debug("checkVolatileForExtra: walk returned error_: %s\n", err)
+                }
+                foundExtraSyncSources = append(foundExtraSyncSources, fullPath)
+                if onlyFirst {
+                    return stopError
+                }
+                return filepath.SkipDir
+            }
+        }
+        return nil
+    }
+
+    err = filepath.Walk(tmpfs, wf)
+    if err != nil && err != stopError {
+        LOG.Debug("checkVolatileForExtra: walk returned error: %s\n", err)
+    } else {
+        err = nil
+    }
+    // Set other return values
+    ok = len(foundExtraSyncSources) == 0 && len(foundPathsWithBackups) == 0
+    extraPaths = &foundExtraSyncSources
+    extraBackupPaths = &foundPathsWithBackups
+    return
+}   // }}}
+
+// checkVolatile checks volatile TMPFS path for extra paths not in sync
+// sources.
+func checkVolatile(tmpfsPath string, syncPaths *[]string) (ok bool) { // {{{
+    if ok, extraPaths, extraBackupPaths, err := checkVolatileForExtra(tmpfsPath, syncPaths, true); !ok || err != nil {
+        if err != nil {
+            LOG.Err("Volatile (TMPFS) directory checker returned an error: %s\n", err)
+        } else {
+            foundBackupSubdirs := ""
+            if len(*extraBackupPaths) > 0 {
+                for i, s := range *extraBackupPaths {
+                    foundBackupSubdirs = foundBackupSubdirs + s
+                    if i < len(*extraBackupPaths) {
+                        foundBackupSubdirs = foundBackupSubdirs + ", "
+                    }
+                }
+            }
+            LOG.Err("TMPFS path contained volatile path(s) not in WHATTOSYNC: %s: %s\n", (*extraPaths)[0], foundBackupSubdirs)
+        }
+        return false
+    }
+    return true
+}   // }}}
+
 // --------------------------------------------------------------------------
 
 // info shows currently used space and what and where data is stored and
-// synced.
+// synced. Also it tells if there is extra paths in the TMPFS directory which
+// are not in current WHATTOSYNC path list.
 func info(copts *ConfigOptions) { // {{{
     var ( // {{{
         target     string
@@ -255,6 +399,27 @@ func info(copts *ConfigOptions) { // {{{
         fmt.Printf("  backup path : %s%s%s\n", colorStart, backupPath, colorEnd)
     }
     fmt.Printf("---------- Total space of TMPFS used: %dM\n", totalSize)
+
+    if ok, extraPaths, extraBackupPaths, err := checkVolatileForExtra(copts.tmpfsPath, &copts.syncPaths, false); !ok || err != nil {
+        if err != nil {
+            fmt.Printf("TMPFS directory checker returned an error: %s\n", err)
+        } else {
+            fmt.Println()
+            if len(*extraPaths) > 0 {
+                fmt.Printf("TMPFS contained paths which were not in WHATTOSYNC paths:\n\n")
+            }
+            for _, s := range *extraPaths {
+                fmt.Printf("  %s\n", s)
+            }
+            if len(*extraBackupPaths) > 0 {
+                fmt.Printf("\nAlso found paths which matching target backup paths existed. The target path was a broken symlink or a symlink to the TMPFS. You should carefully check these paths and remove them from TMPFS afterwards.\n\n")
+            }
+            for _, s := range *extraBackupPaths {
+                fmt.Printf("  %s\n", s)
+            }
+        }
+    }
+
 }   // }}}
 
 // checkAndFix checks if any sync sources where synced but not finally unsynced.
@@ -567,6 +732,11 @@ func runMain() int {
     case "unsync":
         unsync(copts.tmpfsPath, &copts.syncPaths, true)
     case "start":
+        // Check that given TMPFS path does not contain any extra paths which
+        // are not in syncPaths and might not be synced back
+        if ok := checkVolatile(copts.tmpfsPath, &copts.syncPaths); !ok {
+            return 1
+        }
         checkAndFix(copts.tmpfsPath, &copts.syncPaths)
         if err := initSync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin); err != nil {
             LOG.Err(err.Error())
@@ -575,6 +745,11 @@ func runMain() int {
     case "stop":
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
         unsync(copts.tmpfsPath, &copts.syncPaths, false)
+        // If not all volatile paths were synced back issue a warning
+        // XXX: does this really do above?
+        if ok := checkVolatile(copts.tmpfsPath, &copts.syncPaths); !ok {
+            return 1
+        }
     default:
         LOG.Err("Invalid command provided", err)
         flag.Usage()
