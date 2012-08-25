@@ -312,8 +312,11 @@ func checkVolatileForExtra(tmpfs string, syncSources *[]string, onlyFirst bool) 
 }   // }}}
 
 // checkVolatile checks volatile TMPFS path for extra paths not in sync
-// sources.
+// sources. It doesn't do anything for an empty tmpfs path.
 func checkVolatile(tmpfsPath string, syncPaths *[]string) (ok bool) { // {{{
+    if !exists(tmpfsPath) {
+        return true
+    }
     if ok, extraPaths, extraBackupPaths, err := checkVolatileForExtra(tmpfsPath, syncPaths, true); !ok || err != nil {
         if err != nil {
             LOG.Err("Volatile (TMPFS) directory checker returned an error: %s\n", err)
