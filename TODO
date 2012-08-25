@@ -1,20 +1,24 @@
-TODO
-====
-- Check that proper error message is given for out-of-space errors on TMPFS.
-    - Test this with new tmpfs with limited space.
+TODOS
+=====
+
+TODO for the next release
+-------------------------
+
+- More testing.
 
 - Document info command (man) and make it clearer, it's more like debug tool
   now, not that useful.
 
-- TMPFS paths content is not deleted after stopping goanysync:
-    - Good thing if something goes wrong, one place where data can still be
-      found.
-    - If a user doesn't have "enough" memory the TMPFS can fill up.
-    - Possible partial solutions:
-        -> One could always delete the data after stopping goanysync.
-        -> Add a cmdline option for TMPFS path cleanup for unsync and stop options,
-           or general option which removes all but currently synced data.
-        -> Add a remainder how much space is used.
+
+General TODO
+------------
+
+- Refactor/clean code and move utility functions to utils package.
+
+- Consider, would the config file caching still be needed.
+
+- Check that proper error message is given for out-of-space errors on TMPFS.
+    * Test this with new tmpfs with limited space.
 
 - Log: Allow to set syslog priority to different value than console priority.
 
@@ -28,12 +32,6 @@ TODO
 
 - Check that really works with systemd.
 
-- Make non-root user runnable, lock path to config file and permission check
-    to runners uid and gid.
-   * Add configuration option for the lock file dir.
-   * Check how lockfile dir should be created for different distributions.
-     * This should probably be package maintainers problem.
-
 - Parameters for sync command to select what dirs to sync from the dirs
   specified in the config file.
     * With this change cron can be used selectively to sync some dirs.
@@ -41,18 +39,8 @@ TODO
 - Fix various logging problems.
     * "kernel" syslog prefix on Archlinux at least.
 
-- Cache conf file values when "start" is called, so that conf file can be
-  modified and it won't mess "stop". New conf file values would be used when
-  next "start" is called.
-
 - script/goanysync.in should take bin path from autoconf.
 
-MAYBE
------
-    - Wrap logger so that log target is run-time selectable.
-    - Option for snapshot: backup backups to rotating .tar.xz files.
+- Run-time selectable log target.
 
-NEVER
------
-    - Support for renice ionice cronjob, and maybe for general rsync.
-        * Users can always edit cronjobs themselves.
+- Option for snapshot: backup backups to rotating .tar.xz files.
