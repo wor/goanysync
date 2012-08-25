@@ -4,7 +4,9 @@
 
 # Define tmpfs base path, this is where WHATTOSYNC directories will be linked.
 # If directory exists its permissions are altered so that every user has execute
-# rights to it (+x).
+# rights to it (+x). If you for some reason want to run multiple @PACKAGE_NAME@
+# instances with different config files make sure that TMPFS paths are
+# different.
 TMPFS = /dev/shm/@PACKAGE_NAME@
 
 # rsync binary file to use.
