@@ -758,7 +758,9 @@ func runMain() int {
         sync(copts.tmpfsPath, &copts.syncPaths, copts.syncerBin)
         unsync(copts.tmpfsPath, &copts.syncPaths, true)
         // If not all volatile paths were synced back issue a warning
-        // XXX: does this really do above?
+        // XXX: checkVolatile actually warns only about volatile paths not in
+        // syncPaths, so if unsync left something from syncPaths unsynced then
+        // checkVolatile would not notice a problem.
         if ok := checkVolatile(copts.tmpfsPath, &copts.syncPaths); !ok {
             return 1
         }
