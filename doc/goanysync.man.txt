@@ -14,11 +14,14 @@ DESCRIPTION
 
 COMMANDS
     initsync	Replaces sync directories with symlinks to tmpfs while syncing
-    orginal content there.
+    original content there.
     sync	Syncs content from tmpfs to the backup.
-    unsync	Removes symlinking and restores orginal state of the sync directories.
+    unsync	Removes symlinking and restores original state of the sync directories.
     check	Checks whether sync was called without calling unsync before used
     TMPFS was cleared.
+    info	Gives information about sync directories specified in the config
+    file and about the contents of specified TMPFS dir.
+
     start	Alias for executing commands "check" and "initsync" in this order.
     stop	Alias for executing commands "sync" and "unsync" in this order.
 
