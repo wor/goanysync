@@ -17,9 +17,6 @@ General TODO
 
 - Consider, would the config file caching still be needed.
 
-- Check that proper error message is given for out-of-space errors on TMPFS.
-    * Test this with new tmpfs with limited space.
-
 - Log: Allow to set syslog priority to different value than console priority.
 
 - TMPFS paths parent dir must exists at the moment.

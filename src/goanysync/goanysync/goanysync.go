@@ -11,6 +11,7 @@
 package main
 
 import (
+    "bytes"
     "errors"
     "flag"
     "fmt"
@@ -521,15 +522,32 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) error { // 
             if linkError := os.Symlink(volatilePath, s); linkError != nil {
                 LOG.Warn("initSync (symlink): %s", err)
                 LOG.Warn("initSync: Skipping sync source: %s", s)
-                os.Rename(backupPath, s)
+                // Restore orginal state
+                if err := os.Rename(backupPath, s); err != nil {
+                    errMsg := fmt.Sprintf("initsync: After volatile link error, restoring '%s' -> '%s' failed: %s\n", backupPath, s, err)
+                    return errors.New(errMsg)
+                }
                 continue
             }
             // Let's do initial sync to volatile
             cmd := exec.Command(syncerBin, "-a", "--delete", backupPath+"/", s)
-            if err := cmd.Run(); err != nil {
-                LOG.Warn("initSync (volatile): '%s' => with command: %s", err, cmd)
-                LOG.Warn("initSync: Skipping sync source: %s", s)
-                os.Rename(backupPath, s)
+            if output, err := cmd.CombinedOutput(); err != nil {
+                LOG.Err("initSync (volatile): '%s' => with command: %s", err, strings.Join(cmd.Args, " "))
+                for _, outputLine := range bytes.Split(output, []byte("\n")) {
+                    if len(bytes.Trim(outputLine, " \n")) > 0 {
+                        LOG.Err(string(outputLine))
+                    }
+                }
+                LOG.Err("initSync: Skipping sync source: %s", s)
+                // Restore orginal state
+                if err := os.Remove(s); err != nil {
+                    errMsg := fmt.Sprintf("initsync: After sync command error, restoring bt removing '%s' failed: %s\n", s, err)
+                    return errors.New(errMsg)
+                }
+                if err := os.Rename(backupPath, s); err != nil {
+                    errMsg := fmt.Sprintf("initsync: After sync command error, restoring '%s' -> '%s' failed: %s\n", backupPath, s, err)
+                    return errors.New(errMsg)
+                }
             }
             continue
         } else {
@@ -584,8 +602,13 @@ func sync(tmpfs string, syncSources *[]string, syncerBin string) { // {{{
 
         // Everything was ok, so we just sync from volatile tmpfs to backup
         cmd := exec.Command(syncerBin, "-a", "--delete", s+"/", backupPath)
-        if err := cmd.Run(); err != nil { // {{{
-            LOG.Err("sync (backup): '%s' >= with command: %s", err, cmd)
+        if output, err := cmd.CombinedOutput(); err != nil { // {{{
+            LOG.Err("sync (backup): '%s' => with command: %s", err, strings.Join(cmd.Args, " "))
+            for _, outputLine := range bytes.Split(output, []byte("\n")) {
+                if len(bytes.Trim(outputLine, " \n")) > 0 {
+                    LOG.Err(string(outputLine))
+                }
+            }
             LOG.Err("Sync: backup failed for sync source: %s", s)
             continue
         }   // }}}
