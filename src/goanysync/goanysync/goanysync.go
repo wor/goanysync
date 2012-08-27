@@ -554,7 +554,7 @@ func initSync(tmpfs string, syncSources *[]string, syncerBin string) error { // 
             LOG.Debug("initSync: sync path was already initialized: %s", s)
         }   // }}}
     }
-    LOG.Debug("initSync: ...completed without errors.")
+    LOG.Debug("initSync: ...completed.")
     return nil
 }   // }}}
 
