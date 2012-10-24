@@ -22,6 +22,11 @@ LOCKFILE = /run/@PACKAGE_NAME@/process.lock
 # directories content will be moved under TMPFS path and the directory itself
 # replaced by symlink to the aforementioned path.
 #
+# Note that adding "/var/log" to the WHATTOSYNC list causes problems with
+# systemd journald if it set to log there. Configuring systemd to log to
+# volatile in journald.conf should fix the problem (see the storage option in
+# the journald.conf man page).
+#
 # An example could be:
 #
 # WHATTOSYNC = /var/log, /srv/http, /home/myuser/.mozilla/firefox /home/myuser/.cache
