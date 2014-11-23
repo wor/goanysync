@@ -4,6 +4,9 @@ TODOS
 TODO for the next release
 -------------------------
 
+- getcwd() fails if current working directory doesn't exist, find a way to act
+  sanely.
+
 - More testing.
 
 - Document info command (man) and make it clearer, it's more like debug tool
