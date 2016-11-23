@@ -1,0 +1,11 @@
+[Unit]
+Description=Sync @PACKAGE_NAME@ tmpfs volumes to disk every hour
+Documentation=man:@PACKAGE_NAME@
+
+[Timer]
+OnCalendar=hourly
+AccuracySec=1h
+Persistent=true
+
+[Install]
+WantedBy=timers.target

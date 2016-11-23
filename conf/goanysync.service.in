@@ -1,5 +1,5 @@
 [Unit]
-Description=goanysync directory symlinker and content syncer
+Description=@PACKAGE_NAME@ directory symlinker and content syncer
 Wants=local-fs.target
 
 [Service]

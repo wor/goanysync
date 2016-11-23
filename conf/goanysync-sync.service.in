@@ -1,0 +1,6 @@
+[Unit]
+Description=Sync @PACKAGE_NAME@ tmpfs volumes to disk
+
+[Service]
+Type=oneshot
+ExecStart=@bindir@/@PACKAGE_NAME@ sync
